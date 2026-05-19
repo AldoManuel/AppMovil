@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<!-- ==========================================================
+  Sistema de Seguimiento de Tareas Escolares
+  Página: Dashboard Principal
+  ========================================================== -->
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Sistema de Seguimiento de Tareas Escolares</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+
+  <div class="app-layout">
+
+    <!-- ====== SIDEBAR ====== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">📚</div>
+        <span class="sidebar-brand">TaskTracker</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <p class="nav-label">Principal</p>
+          <a class="nav-item active" data-page="dashboard.html" href="dashboard.html">
+            <span class="nav-icon">📊</span>
+            <span class="nav-text">Dashboard</span>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <p class="nav-label">Gestión</p>
+          <a class="nav-item" data-page="usuarios.html" href="usuarios.html">
+            <span class="nav-icon">👥</span>
+            <span class="nav-text">Usuarios</span>
+            <span class="nav-badge">12</span>
+          </a>
+          <a class="nav-item" data-page="docentes.html" href="docentes.html">
+            <span class="nav-icon">👨‍🏫</span>
+            <span class="nav-text">Docentes</span>
+          </a>
+          <a class="nav-item" data-page="padres.html" href="padres.html">
+            <span class="nav-icon">👪</span>
+            <span class="nav-text">Padres</span>
+          </a>
+          <a class="nav-item" data-page="alumnos.html" href="alumnos.html">
+            <span class="nav-icon">🎒</span>
+            <span class="nav-text">Alumnos</span>
+          </a>
+          <a class="nav-item" data-page="tareas.html" href="tareas.html">
+            <span class="nav-icon">📝</span>
+            <span class="nav-text">Tareas</span>
+            <span class="nav-badge">8</span>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <p class="nav-label">Herramientas</p>
+          <a class="nav-item" data-page="calendario.html" href="calendario.html">
+            <span class="nav-icon">📅</span>
+            <span class="nav-text">Calendario</span>
+          </a>
+          <a class="nav-item" data-page="notificaciones.html" href="notificaciones.html">
+            <span class="nav-icon">🔔</span>
+            <span class="nav-text">Notificaciones</span>
+            <span class="nav-badge">5</span>
+          </a>
+          <a class="nav-item" data-page="reportes.html" href="reportes.html">
+            <span class="nav-icon">📈</span>
+            <span class="nav-text">Reportes</span>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <p class="nav-label">Sistema</p>
+          <a class="nav-item" data-page="configuracion.html" href="configuracion.html">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-text">Configuración</span>
+          </a>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a class="nav-item" href="index.html">
+          <span class="nav-icon">🚪</span>
+          <span class="nav-text">Cerrar Sesión</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- ====== TOGGLE SIDEBAR ====== -->
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+      <span class="toggle-icon">◀</span>
+    </button>
+
+    <!-- ====== CONTENIDO PRINCIPAL ====== -->
+    <main class="main-content">
+
+      <!-- Navbar -->
+      <header class="navbar">
+        <div class="navbar-left">
+          <div class="navbar-search">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="table-search" placeholder="Buscar en el sistema..." />
+          </div>
+        </div>
+
+        <div class="navbar-right">
+          <button class="navbar-btn" data-toast="Notificaciones actualizadas">
+            🔔
+            <span class="badge-dot"></span>
+          </button>
+
+          <div class="dropdown">
+            <button class="navbar-btn dropdown-toggle">⚙️</button>
+            <div class="dropdown-menu">
+              <div class="dropdown-item" onclick="window.location.href='perfil.html'">
+                👤 Mi Perfil
+              </div>
+              <div class="dropdown-item" onclick="window.location.href='configuracion.html'">
+                ⚙️ Configuración
+              </div>
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-item" onclick="window.location.href='index.html'">
+                🚪 Cerrar Sesión
+              </div>
+            </div>
+          </div>
+
+          <div class="navbar-user">
+            <div class="navbar-avatar">AD</div>
+            <div class="navbar-user-info">
+              <div class="navbar-user-name">Admin Principal</div>
+              <div class="navbar-user-role">Administrador</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+
+        <!-- Page Header -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-subtitle">Resumen general del sistema escolar</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary btn-sm" data-toast="Reporte generado exitosamente">
+              📥 Exportar Reporte
+            </button>
+          </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon blue">👨‍🏫</div>
+            <div class="stat-info">
+              <div class="stat-label">Docentes</div>
+              <div class="stat-value">48</div>
+              <span class="stat-change up">↑ 4% este mes</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon green">🎒</div>
+            <div class="stat-info">
+              <div class="stat-label">Alumnos</div>
+              <div class="stat-value">1,284</div>
+              <span class="stat-change up">↑ 12% este año</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon yellow">📝</div>
+            <div class="stat-info">
+              <div class="stat-label">Tareas</div>
+              <div class="stat-value">342</div>
+              <span class="stat-change down">↓ 3% este mes</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon red">🔔</div>
+            <div class="stat-info">
+              <div class="stat-label">Notificaciones</div>
+              <div class="stat-value">18</div>
+              <span class="stat-change up">↑ 2 nuevas</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grid: Gráfica + Calendario -->
+        <div class="grid-2" style="margin-bottom: 24px;">
+
+          <!-- Gráfica de Barras -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Tareas por Semana</h3>
+              <span class="text-small text-muted">Últimas 4 semanas</span>
+            </div>
+            <div class="card-body">
+              <div class="chart-container">
+                <div class="chart-bar-group">
+                  <div class="chart-bar" style="background: var(--primary); height: 0%;" data-height="85" data-delay="200">
+                    <span class="chart-tooltip">85 tareas</span>
+                  </div>
+                  <div class="chart-bar" style="background: var(--secondary); height: 0%;" data-height="70" data-delay="400">
+                    <span class="chart-tooltip">70 tareas</span>
+                  </div>
+                  <div class="chart-bar" style="background: #f59e0b; height: 0%;" data-height="92" data-delay="600">
+                    <span class="chart-tooltip">92 tareas</span>
+                  </div>
+                  <div class="chart-bar" style="background: var(--danger); height: 0%;" data-height="55" data-delay="800">
+                    <span class="chart-tooltip">55 tareas</span>
+                  </div>
+                  <div class="chart-bar" style="background: #7c3aed; height: 0%;" data-height="78" data-delay="1000">
+                    <span class="chart-tooltip">78 tareas</span>
+                  </div>
+                  <div class="chart-bar" style="background: var(--primary); height: 0%;" data-height="60" data-delay="1200">
+                    <span class="chart-tooltip">60 tareas</span>
+                  </div>
+                  <div class="chart-bar" style="background: var(--secondary); height: 0%;" data-height="45" data-delay="1400">
+                    <span class="chart-tooltip">45 tareas</span>
+                  </div>
+                </div>
+                <div class="chart-labels">
+                  <span class="chart-label">Lun</span>
+                  <span class="chart-label">Mar</span>
+                  <span class="chart-label">Mié</span>
+                  <span class="chart-label">Jue</span>
+                  <span class="chart-label">Vie</span>
+                  <span class="chart-label">Sáb</span>
+                  <span class="chart-label">Dom</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Calendario Widget -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Calendario Escolar</h3>
+              <span class="text-small text-muted">Mayo 2026</span>
+            </div>
+            <div class="card-body" style="padding: 16px;">
+              <div class="calendar">
+                <div class="calendar-header">
+                  <button class="btn btn-secondary btn-icon" style="width:32px;height:32px;font-size:14px;">◀</button>
+                  <span class="calendar-title" style="font-size:14px;">Mayo 2026</span>
+                  <button class="btn btn-secondary btn-icon" style="width:32px;height:32px;font-size:14px;">▶</button>
+                </div>
+                <div class="calendar-grid">
+                  <div class="calendar-weekday">Dom</div>
+                  <div class="calendar-weekday">Lun</div>
+                  <div class="calendar-weekday">Mar</div>
+                  <div class="calendar-weekday">Mié</div>
+                  <div class="calendar-weekday">Jue</div>
+                  <div class="calendar-weekday">Vie</div>
+                  <div class="calendar-weekday">Sáb</div>
+                  <div class="calendar-day other-month"><span class="day-number">27</span></div>
+                  <div class="calendar-day other-month"><span class="day-number">28</span></div>
+                  <div class="calendar-day other-month"><span class="day-number">29</span></div>
+                  <div class="calendar-day other-month"><span class="day-number">30</span></div>
+                  <div class="calendar-day"><span class="day-number">1</span></div>
+                  <div class="calendar-day"><span class="day-number">2</span></div>
+                  <div class="calendar-day"><span class="day-number">3</span></div>
+                  <div class="calendar-day"><span class="day-number">4</span></div>
+                  <div class="calendar-day"><span class="day-number">5</span></div>
+                  <div class="calendar-day today"><span class="day-number">6</span></div>
+                  <div class="calendar-day"><span class="day-number">7</span></div>
+                  <div class="calendar-day"><span class="day-number">8</span></div>
+                  <div class="calendar-day"><span class="day-number">9</span></div>
+                  <div class="calendar-day"><span class="day-number">10</span></div>
+                  <div class="calendar-day">
+                    <span class="day-number">11</span>
+                    <div class="calendar-event event-blue">📝 Entrega Mat.</div>
+                  </div>
+                  <div class="calendar-day"><span class="day-number">12</span></div>
+                  <div class="calendar-day"><span class="day-number">13</span></div>
+                  <div class="calendar-day"><span class="day-number">14</span></div>
+                  <div class="calendar-day"><span class="day-number">15</span></div>
+                  <div class="calendar-day">
+                    <span class="day-number">16</span>
+                    <div class="calendar-event event-green">🎓 Junta</div>
+                  </div>
+                  <div class="calendar-day"><span class="day-number">17</span></div>
+                  <div class="calendar-day"><span class="day-number">18</span></div>
+                  <div class="calendar-day"><span class="day-number">19</span></div>
+                  <div class="calendar-day"><span class="day-number">20</span></div>
+                  <div class="calendar-day">
+                    <span class="day-number">21</span>
+                    <div class="calendar-event event-purple">📚 Examen</div>
+                  </div>
+                  <div class="calendar-day"><span class="day-number">22</span></div>
+                  <div class="calendar-day"><span class="day-number">23</span></div>
+                  <div class="calendar-day"><span class="day-number">24</span></div>
+                  <div class="calendar-day"><span class="day-number">25</span></div>
+                  <div class="calendar-day"><span class="day-number">26</span></div>
+                  <div class="calendar-day"><span class="day-number">27</span></div>
+                  <div class="calendar-day"><span class="day-number">28</span></div>
+                  <div class="calendar-day"><span class="day-number">29</span></div>
+                  <div class="calendar-day"><span class="day-number">30</span></div>
+                  <div class="calendar-day"><span class="day-number">31</span></div>
+                  <div class="calendar-day other-month"><span class="day-number">1</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grid: Actividad Reciente + Notificaciones -->
+        <div class="grid-2">
+
+          <!-- Tabla de Actividad Reciente -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Actividad Reciente</h3>
+              <button class="btn btn-secondary btn-sm" data-toast="Actualizando actividad...">Actualizar</button>
+            </div>
+            <div class="card-body" style="padding: 0;">
+              <div class="table-container" style="border: none;">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Usuario</th>
+                      <th>Acción</th>
+                      <th>Fecha</th>
+                      <th>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>María García</strong></td>
+                      <td>Creó tarea "Matemáticas"</td>
+                      <td>Hoy 09:15</td>
+                      <td><span class="status status-delivered"><span class="status-dot"></span>Completado</span></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Carlos López</strong></td>
+                      <td>Entregó tarea "Historia"</td>
+                      <td>Hoy 08:45</td>
+                      <td><span class="status status-active"><span class="status-dot"></span>Activo</span></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Ana Martínez</strong></td>
+                      <td>Actualizó perfil</td>
+                      <td>Ayer 16:30</td>
+                      <td><span class="status status-delivered"><span class="status-dot"></span>Completado</span></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Pedro Sánchez</strong></td>
+                      <td>Registró nuevo alumno</td>
+                      <td>Ayer 14:20</td>
+                      <td><span class="status status-pending"><span class="status-dot"></span>Pendiente</span></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Laura Díaz</strong></td>
+                      <td>Solicitó revisión</td>
+                      <td>Ayer 11:10</td>
+                      <td><span class="status status-inactive"><span class="status-dot"></span>Inactivo</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel de Notificaciones -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Notificaciones Recientes</h3>
+              <button class="btn btn-secondary btn-sm">Ver Todas</button>
+            </div>
+            <div class="card-body" style="padding: 12px 16px;">
+              <div class="notification-list">
+                <div class="notification-item unread">
+                  <div class="notification-icon" style="background: var(--primary-light); color: var(--primary);">📝</div>
+                  <div class="notification-content">
+                    <div class="notification-text"><strong>Nueva tarea:</strong> Matemáticas - Álgebra Lineal</div>
+                    <div class="notification-time">Hace 10 minutos</div>
+                  </div>
+                </div>
+                <div class="notification-item unread">
+                  <div class="notification-icon" style="background: var(--danger-light); color: var(--danger);">⚠️</div>
+                  <div class="notification-content">
+                    <div class="notification-text"><strong>Tarea retrasada:</strong> Historia - Revolución Mexicana</div>
+                    <div class="notification-time">Hace 1 hora</div>
+                  </div>
+                </div>
+                <div class="notification-item">
+                  <div class="notification-icon" style="background: var(--secondary-light); color: var(--secondary);">✅</div>
+                  <div class="notification-content">
+                    <div class="notification-text"><strong>Entrega recibida:</strong> Ciencias - Proyecto Final</div>
+                    <div class="notification-time">Hace 3 horas</div>
+                  </div>
+                </div>
+                <div class="notification-item">
+                  <div class="notification-icon" style="background: var(--warning-light); color: #d97706;">👤</div>
+                  <div class="notification-content">
+                    <div class="notification-text"><strong>Nuevo padre registrado:</strong> Roberto Hernández</div>
+                    <div class="notification-time">Ayer</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

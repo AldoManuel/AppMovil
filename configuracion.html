@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuración — Sistema de Seguimiento de Tareas Escolares</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header"><div class="sidebar-logo">📚</div><span class="sidebar-brand">TaskTracker</span></div>
+      <nav class="sidebar-nav">
+        <div class="nav-section"><p class="nav-label">Principal</p><a class="nav-item" data-page="dashboard.html" href="dashboard.html"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a></div>
+        <div class="nav-section">
+          <p class="nav-label">Gestión</p>
+          <a class="nav-item" data-page="usuarios.html" href="usuarios.html"><span class="nav-icon">👥</span><span class="nav-text">Usuarios</span><span class="nav-badge">12</span></a>
+          <a class="nav-item" data-page="docentes.html" href="docentes.html"><span class="nav-icon">👨‍🏫</span><span class="nav-text">Docentes</span></a>
+          <a class="nav-item" data-page="padres.html" href="padres.html"><span class="nav-icon">👪</span><span class="nav-text">Padres</span></a>
+          <a class="nav-item" data-page="alumnos.html" href="alumnos.html"><span class="nav-icon">🎒</span><span class="nav-text">Alumnos</span></a>
+          <a class="nav-item" data-page="tareas.html" href="tareas.html"><span class="nav-icon">📝</span><span class="nav-text">Tareas</span><span class="nav-badge">8</span></a>
+        </div>
+        <div class="nav-section">
+          <p class="nav-label">Herramientas</p>
+          <a class="nav-item" data-page="calendario.html" href="calendario.html"><span class="nav-icon">📅</span><span class="nav-text">Calendario</span></a>
+          <a class="nav-item" data-page="notificaciones.html" href="notificaciones.html"><span class="nav-icon">🔔</span><span class="nav-text">Notificaciones</span><span class="nav-badge">5</span></a>
+          <a class="nav-item" data-page="reportes.html" href="reportes.html"><span class="nav-icon">📈</span><span class="nav-text">Reportes</span></a>
+        </div>
+        <div class="nav-section"><p class="nav-label">Sistema</p><a class="nav-item active" data-page="configuracion.html" href="configuracion.html"><span class="nav-icon">⚙️</span><span class="nav-text">Configuración</span></a></div>
+      </nav>
+      <div class="sidebar-footer"><a class="nav-item" href="index.html"><span class="nav-icon">🚪</span><span class="nav-text">Cerrar Sesión</span></a></div>
+    </aside>
+
+    <button class="sidebar-toggle" id="sidebarToggle"><span class="toggle-icon">◀</span></button>
+
+    <main class="main-content">
+      <header class="navbar">
+        <div class="navbar-left"><div class="navbar-search"><span class="search-icon">🔍</span><input type="text" placeholder="Buscar en configuración..." /></div></div>
+        <div class="navbar-right">
+          <button class="navbar-btn" data-toast="Notificaciones actualizadas">🔔<span class="badge-dot"></span></button>
+          <div class="dropdown">
+            <button class="navbar-btn dropdown-toggle">⚙️</button>
+            <div class="dropdown-menu">
+              <div class="dropdown-item" onclick="window.location.href='configuracion.html'">⚙️ Configuración</div>
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-item" onclick="window.location.href='index.html'">🚪 Cerrar Sesión</div>
+            </div>
+          </div>
+          <div class="navbar-user"><div class="navbar-avatar">AD</div><div class="navbar-user-info"><div class="navbar-user-name">Admin Principal</div><div class="navbar-user-role">Administrador</div></div></div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Configuración</h1>
+            <p class="page-subtitle">Ajustes del sistema y preferencias</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary btn-sm" data-toast="Cambios guardados correctamente">💾 Guardar Cambios</button>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <!-- Apariencia -->
+          <div class="settings-section">
+            <h3 class="settings-section-title">Apariencia</h3>
+            <div class="settings-card">
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h4>Tema Oscuro</h4>
+                  <p>Cambiar entre tema claro y oscuro</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="themeToggle" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h4>Sidebar Colapsada</h4>
+                  <p>Mantener la sidebar reducida por defecto</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h4>Idioma</h4>
+                  <p>Idioma de la interfaz del sistema</p>
+                </div>
+                <select class="form-select" style="width: auto;">
+                  <option>Español</option>
+                  <option>Inglés</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notificaciones -->
+          <div class="settings-section">
+            <h3 class="settings-section-title">Notificaciones</h3>
+            <div class="settings-card">
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h4>Notificaciones por Correo</h4>
+                  <p>Recibir alertas importantes por correo</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h4>Alertas de Tareas</h4>
+                  <p>Notificar cuando una tarea está próxima a vencer</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h4>Notificaciones Push</h4>
+                  <p>Recibir notificaciones en tiempo real</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Información del Perfil -->
+          <div class="settings-section">
+            <h3 class="settings-section-title">Perfil de Administrador</h3>
+            <div class="settings-card">
+              <form onsubmit="return false;">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Nombre</label>
+                    <input class="form-input" type="text" value="Admin Principal" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Correo</label>
+                    <input class="form-input" type="email" value="admin@institucion.edu" />
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Nueva Contraseña</label>
+                    <input class="form-input" type="password" placeholder="Dejar en blanco para mantener" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Confirmar Contraseña</label>
+                    <input class="form-input" type="password" placeholder="Repetir contraseña" />
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Preferencias del Sistema -->
+          <div class="settings-section">
+            <h3 class="settings-section-title">Preferencias del Sistema</h3>
+            <div class="settings-card">
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h4>Registros por Página</h4>
+                  <p>Número de elementos a mostrar en tablas</p>
+                </div>
+                <select class="form-select" style="width: auto;">
+                  <option>10</option>
+                  <option selected>25</option>
+                  <option>50</option>
+                  <option>100</option>
+                </select>
+              </div>
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h4>Formato de Fecha</h4>
+                  <p>Formato de visualización de fechas</p>
+                </div>
+                <select class="form-select" style="width: auto;">
+                  <option selected>DD/MM/AAAA</option>
+                  <option>MM/DD/AAAA</option>
+                  <option>AAAA-MM-DD</option>
+                </select>
+              </div>
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h4>Zona Horaria</h4>
+                  <p>Zona horaria del sistema</p>
+                </div>
+                <select class="form-select" style="width: auto;">
+                  <option selected>America/Mexico_City (UTC-6)</option>
+                  <option>America/Argentina/Buenos_Aires (UTC-3)</option>
+                  <option>America/Bogota (UTC-5)</option>
+                  <option>America/Santiago (UTC-4)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

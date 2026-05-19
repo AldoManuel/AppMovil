@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tareas — Sistema de Seguimiento de Tareas Escolares</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header"><div class="sidebar-logo">📚</div><span class="sidebar-brand">TaskTracker</span></div>
+      <nav class="sidebar-nav">
+        <div class="nav-section"><p class="nav-label">Principal</p><a class="nav-item" data-page="dashboard.html" href="dashboard.html"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a></div>
+        <div class="nav-section">
+          <p class="nav-label">Gestión</p>
+          <a class="nav-item" data-page="usuarios.html" href="usuarios.html"><span class="nav-icon">👥</span><span class="nav-text">Usuarios</span><span class="nav-badge">12</span></a>
+          <a class="nav-item" data-page="docentes.html" href="docentes.html"><span class="nav-icon">👨‍🏫</span><span class="nav-text">Docentes</span></a>
+          <a class="nav-item" data-page="padres.html" href="padres.html"><span class="nav-icon">👪</span><span class="nav-text">Padres</span></a>
+          <a class="nav-item" data-page="alumnos.html" href="alumnos.html"><span class="nav-icon">🎒</span><span class="nav-text">Alumnos</span></a>
+          <a class="nav-item active" data-page="tareas.html" href="tareas.html"><span class="nav-icon">📝</span><span class="nav-text">Tareas</span><span class="nav-badge">8</span></a>
+        </div>
+        <div class="nav-section">
+          <p class="nav-label">Herramientas</p>
+          <a class="nav-item" data-page="calendario.html" href="calendario.html"><span class="nav-icon">📅</span><span class="nav-text">Calendario</span></a>
+          <a class="nav-item" data-page="notificaciones.html" href="notificaciones.html"><span class="nav-icon">🔔</span><span class="nav-text">Notificaciones</span><span class="nav-badge">5</span></a>
+          <a class="nav-item" data-page="reportes.html" href="reportes.html"><span class="nav-icon">📈</span><span class="nav-text">Reportes</span></a>
+        </div>
+        <div class="nav-section"><p class="nav-label">Sistema</p><a class="nav-item" data-page="configuracion.html" href="configuracion.html"><span class="nav-icon">⚙️</span><span class="nav-text">Configuración</span></a></div>
+      </nav>
+      <div class="sidebar-footer"><a class="nav-item" href="index.html"><span class="nav-icon">🚪</span><span class="nav-text">Cerrar Sesión</span></a></div>
+    </aside>
+
+    <button class="sidebar-toggle" id="sidebarToggle"><span class="toggle-icon">◀</span></button>
+
+    <main class="main-content">
+      <header class="navbar">
+        <div class="navbar-left"><div class="navbar-search"><span class="search-icon">🔍</span><input type="text" class="table-search" placeholder="Buscar tareas..." /></div></div>
+        <div class="navbar-right">
+          <button class="navbar-btn" data-toast="Notificaciones actualizadas">🔔<span class="badge-dot"></span></button>
+          <div class="dropdown">
+            <button class="navbar-btn dropdown-toggle">⚙️</button>
+            <div class="dropdown-menu">
+              <div class="dropdown-item" onclick="window.location.href='configuracion.html'">⚙️ Configuración</div>
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-item" onclick="window.location.href='index.html'">🚪 Cerrar Sesión</div>
+            </div>
+          </div>
+          <div class="navbar-user"><div class="navbar-avatar">AD</div><div class="navbar-user-info"><div class="navbar-user-name">Admin Principal</div><div class="navbar-user-role">Administrador</div></div></div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Tareas Escolares</h1>
+            <p class="page-subtitle">Seguimiento de tareas asignadas por los docentes</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary btn-sm" data-action="add" data-toast="Formulario de nueva tarea abierto">+ Nueva Tarea</button>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" style="margin-bottom: 24px;">
+          <div class="stat-card"><div class="stat-icon blue">📝</div><div class="stat-info"><div class="stat-label">Total Tareas</div><div class="stat-value">342</div><span class="stat-change up">↑ 8% este mes</span></div></div>
+          <div class="stat-card"><div class="stat-icon green">✅</div><div class="stat-info"><div class="stat-label">Entregadas</div><div class="stat-value">198</div><span class="stat-change up">↑ 58%</span></div></div>
+          <div class="stat-card"><div class="stat-icon yellow">⏳</div><div class="stat-info"><div class="stat-label">Pendientes</div><div class="stat-value">98</div><span class="stat-change down">↓ 29%</span></div></div>
+          <div class="stat-card"><div class="stat-icon red">⚠️</div><div class="stat-info"><div class="stat-label">Retrasadas</div><div class="stat-value">46</div><span class="stat-change down">↓ 13%</span></div></div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs" data-tab-container>
+          <div class="tab-item active" data-tab="tab-all">Todas</div>
+          <div class="tab-item" data-tab="tab-pending">Pendientes</div>
+          <div class="tab-item" data-tab="tab-delivered">Entregadas</div>
+          <div class="tab-item" data-tab="tab-late">Retrasadas</div>
+        </div>
+
+        <div id="tab-all" class="tab-content active">
+          <div class="search-bar" style="margin-bottom: 16px;">
+            <div class="search-input-group"><span class="input-icon">🔍</span><input type="text" class="table-search" placeholder="Buscar por título, materia o docente..." /></div>
+            <div class="filter-group">
+              <select class="form-select" style="width: auto; min-width: 140px;">
+                <option>Todas las materias</option>
+                <option>Matemáticas</option>
+                <option>Historia</option>
+                <option>Ciencias</option>
+                <option>Lengua</option>
+                <option>Inglés</option>
+              </select>
+              <button class="btn btn-secondary btn-sm" data-toast="Filtros aplicados">Filtrar</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="table-container">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Título</th>
+                    <th>Materia</th>
+                    <th>Docente</th>
+                    <th>Fecha Entrega</th>
+                    <th>Estado</th>
+                    <th style="text-align: center;">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Álgebra Lineal</strong></td>
+                    <td>Matemáticas</td>
+                    <td>María García</td>
+                    <td>11/05/2026</td>
+                    <td><span class="status status-pending"><span class="status-dot"></span>Pendiente</span></td>
+                    <td style="text-align: center;">
+                      <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver">👁️</button>
+                      <button class="btn btn-secondary btn-icon btn-sm" data-action="edit" title="Editar">✏️</button>
+                      <button class="btn btn-secondary btn-icon btn-sm" data-action="delete" title="Eliminar">🗑️</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Revolución Mexicana</strong></td>
+                    <td>Historia</td>
+                    <td>Carlos Hernández</td>
+                    <td>08/05/2026</td>
+                    <td><span class="status status-late"><span class="status-dot"></span>Retrasada</span></td>
+                    <td style="text-align: center;">
+                      <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver">👁️</button>
+                      <button class="btn btn-secondary btn-icon btn-sm" data-action="edit" title="Editar">✏️</button>
+                      <button class="btn btn-secondary btn-icon btn-sm" data-action="delete" title="Eliminar">🗑️</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Proyecto Final</strong></td>
+                    <td>Ciencias</td>
+                    <td>Ana Rodríguez</td>
+                    <td>06/05/2026</td>
+                    <td><span class="status status-delivered"><span class="status-dot"></span>Entregada</span></td>
+                    <td style="text-align: center;">
+                      <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver">👁️</button>
+                      <button class="btn btn-secondary btn-icon btn-sm" data-action="edit" title="Editar">✏️</button>
+                      <button class="btn btn-secondary btn-icon btn-sm" data-action="delete" title="Eliminar">🗑️</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Análisis Sintáctico</strong></td>
+                    <td>Lengua</td>
+                    <td>Laura Gómez</td>
+                    <td>15/05/2026</td>
+                    <td><span class="status status-pending"><span class="status-dot"></span>Pendiente</span></td>
+                    <td style="text-align: center;">
+                      <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver">👁️</button>
+                      <button class="btn btn-secondary btn-icon btn-sm" data-action="edit" title="Editar">✏️</button>
+                      <button class="btn btn-secondary btn-icon btn-sm" data-action="delete" title="Eliminar">🗑️</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Verb Tenses</strong></td>
+                    <td>Inglés</td>
+                    <td>Roberto Flores</td>
+                    <td>09/05/2026</td>
+                    <td><span class="status status-delivered"><span class="status-dot"></span>Entregada</span></td>
+                    <td style="text-align: center;">
+                      <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver">👁️</button>
+                      <button class="btn btn-secondary btn-icon btn-sm" data-action="edit" title="Editar">✏️</button>
+                      <button class="btn btn-secondary btn-icon btn-sm" data-action="delete" title="Eliminar">🗑️</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Ecuaciones Cuadráticas</strong></td>
+                    <td>Matemáticas</td>
+                    <td>María García</td>
+                    <td>04/05/2026</td>
+                    <td><span class="status status-late"><span class="status-dot"></span>Retrasada</span></td>
+                    <td style="text-align: center;">
+                      <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver">👁️</button>
+                      <button class="btn btn-secondary btn-icon btn-sm" data-action="edit" title="Editar">✏️</button>
+                      <button class="btn btn-secondary btn-icon btn-sm" data-action="delete" title="Eliminar">🗑️</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="card-footer flex-between">
+              <span class="text-small text-muted">Mostrando 6 de 342 tareas</span>
+              <div class="flex-gap">
+                <button class="btn btn-secondary btn-sm">◀ Anterior</button>
+                <button class="btn btn-primary btn-sm">Siguiente ▶</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-pending" class="tab-content">
+          <div class="card"><div class="card-body text-center text-muted" style="padding: 40px;">⏳ Mostrando tareas pendientes (filtro visual simulado)</div></div>
+        </div>
+        <div id="tab-delivered" class="tab-content">
+          <div class="card"><div class="card-body text-center text-muted" style="padding: 40px;">✅ Mostrando tareas entregadas (filtro visual simulado)</div></div>
+        </div>
+        <div id="tab-late" class="tab-content">
+          <div class="card"><div class="card-body text-center text-muted" style="padding: 40px;">⚠️ Mostrando tareas retrasadas (filtro visual simulado)</div></div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

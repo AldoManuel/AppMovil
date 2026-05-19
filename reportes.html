@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reportes — Sistema de Seguimiento de Tareas Escolares</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header"><div class="sidebar-logo">📚</div><span class="sidebar-brand">TaskTracker</span></div>
+      <nav class="sidebar-nav">
+        <div class="nav-section"><p class="nav-label">Principal</p><a class="nav-item" data-page="dashboard.html" href="dashboard.html"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a></div>
+        <div class="nav-section">
+          <p class="nav-label">Gestión</p>
+          <a class="nav-item" data-page="usuarios.html" href="usuarios.html"><span class="nav-icon">👥</span><span class="nav-text">Usuarios</span><span class="nav-badge">12</span></a>
+          <a class="nav-item" data-page="docentes.html" href="docentes.html"><span class="nav-icon">👨‍🏫</span><span class="nav-text">Docentes</span></a>
+          <a class="nav-item" data-page="padres.html" href="padres.html"><span class="nav-icon">👪</span><span class="nav-text">Padres</span></a>
+          <a class="nav-item" data-page="alumnos.html" href="alumnos.html"><span class="nav-icon">🎒</span><span class="nav-text">Alumnos</span></a>
+          <a class="nav-item" data-page="tareas.html" href="tareas.html"><span class="nav-icon">📝</span><span class="nav-text">Tareas</span><span class="nav-badge">8</span></a>
+        </div>
+        <div class="nav-section">
+          <p class="nav-label">Herramientas</p>
+          <a class="nav-item" data-page="calendario.html" href="calendario.html"><span class="nav-icon">📅</span><span class="nav-text">Calendario</span></a>
+          <a class="nav-item" data-page="notificaciones.html" href="notificaciones.html"><span class="nav-icon">🔔</span><span class="nav-text">Notificaciones</span><span class="nav-badge">5</span></a>
+          <a class="nav-item active" data-page="reportes.html" href="reportes.html"><span class="nav-icon">📈</span><span class="nav-text">Reportes</span></a>
+        </div>
+        <div class="nav-section"><p class="nav-label">Sistema</p><a class="nav-item" data-page="configuracion.html" href="configuracion.html"><span class="nav-icon">⚙️</span><span class="nav-text">Configuración</span></a></div>
+      </nav>
+      <div class="sidebar-footer"><a class="nav-item" href="index.html"><span class="nav-icon">🚪</span><span class="nav-text">Cerrar Sesión</span></a></div>
+    </aside>
+
+    <button class="sidebar-toggle" id="sidebarToggle"><span class="toggle-icon">◀</span></button>
+
+    <main class="main-content">
+      <header class="navbar">
+        <div class="navbar-left"><div class="navbar-search"><span class="search-icon">🔍</span><input type="text" placeholder="Buscar reportes..." /></div></div>
+        <div class="navbar-right">
+          <button class="navbar-btn" data-toast="Notificaciones actualizadas">🔔<span class="badge-dot"></span></button>
+          <div class="dropdown">
+            <button class="navbar-btn dropdown-toggle">⚙️</button>
+            <div class="dropdown-menu">
+              <div class="dropdown-item" onclick="window.location.href='configuracion.html'">⚙️ Configuración</div>
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-item" onclick="window.location.href='index.html'">🚪 Cerrar Sesión</div>
+            </div>
+          </div>
+          <div class="navbar-user"><div class="navbar-avatar">AD</div><div class="navbar-user-info"><div class="navbar-user-name">Admin Principal</div><div class="navbar-user-role">Administrador</div></div></div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Reportes</h1>
+            <p class="page-subtitle">Estadísticas y análisis del sistema educativo</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary btn-sm" data-toast="Exportando reporte en PDF...">📥 Exportar PDF</button>
+            <button class="btn btn-secondary btn-sm" data-toast="Exportando reporte en Excel...">📊 Exportar Excel</button>
+          </div>
+        </div>
+
+        <!-- Stats principales -->
+        <div class="stats-grid" style="margin-bottom: 24px;">
+          <div class="stat-card"><div class="stat-icon blue">📈</div><div class="stat-info"><div class="stat-label">Rendimiento General</div><div class="stat-value">86%</div><span class="stat-change up">↑ 4% vs mes anterior</span></div></div>
+          <div class="stat-card"><div class="stat-icon green">✅</div><div class="stat-info"><div class="stat-label">Tareas Completadas</div><div class="stat-value">58%</div><span class="stat-change up">↑ 6% este mes</span></div></div>
+          <div class="stat-card"><div class="stat-icon yellow">📊</div><div class="stat-info"><div class="stat-label">Asistencia Promedio</div><div class="stat-value">92%</div><span class="stat-change up">↑ 1%</span></div></div>
+          <div class="stat-card"><div class="stat-icon indigo">🎯</div><div class="stat-info"><div class="stat-label">Participación</div><div class="stat-value">74%</div><span class="stat-change down">↓ 2%</span></div></div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom: 24px;">
+          <!-- Gráfica de Rendimiento por Grado -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Rendimiento por Grado</h3>
+              <span class="text-small text-muted">Promedio general</span>
+            </div>
+            <div class="card-body">
+              <div class="chart-container">
+                <div class="chart-bar-group" style="height: 200px;">
+                  <div class="chart-bar" style="background: var(--primary); height: 0%;" data-height="92" data-delay="200">
+                    <span class="chart-tooltip">92%</span>
+                  </div>
+                  <div class="chart-bar" style="background: var(--secondary); height: 0%;" data-height="88" data-delay="400">
+                    <span class="chart-tooltip">88%</span>
+                  </div>
+                  <div class="chart-bar" style="background: #f59e0b; height: 0%;" data-height="78" data-delay="600">
+                    <span class="chart-tooltip">78%</span>
+                  </div>
+                  <div class="chart-bar" style="background: #7c3aed; height: 0%;" data-height="85" data-delay="800">
+                    <span class="chart-tooltip">85%</span>
+                  </div>
+                  <div class="chart-bar" style="background: var(--danger); height: 0%;" data-height="72" data-delay="1000">
+                    <span class="chart-tooltip">72%</span>
+                  </div>
+                  <div class="chart-bar" style="background: #0891b2; height: 0%;" data-height="80" data-delay="1200">
+                    <span class="chart-tooltip">80%</span>
+                  </div>
+                </div>
+                <div class="chart-labels">
+                  <span class="chart-label">1°</span>
+                  <span class="chart-label">2°</span>
+                  <span class="chart-label">3°</span>
+                  <span class="chart-label">4°</span>
+                  <span class="chart-label">5°</span>
+                  <span class="chart-label">6°</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gráfica de Dona -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Distribución por Género</h3>
+              <span class="text-small text-muted">Total: 1,284 alumnos</span>
+            </div>
+            <div class="card-body text-center">
+              <div class="donut-chart" style="background: conic-gradient(var(--primary) 0% 52%, var(--secondary) 52% 100%);">
+                <div class="donut-center">
+                  <div class="donut-center-value">1,284</div>
+                  <div class="donut-center-label">Total</div>
+                </div>
+              </div>
+              <div style="display: flex; justify-content: center; gap: 24px; margin-top: 16px;">
+                <div class="flex-gap"><span style="width:12px;height:12px;border-radius:3px;background:var(--primary);"></span> Hombres: 52%</div>
+                <div class="flex-gap"><span style="width:12px;height:12px;border-radius:3px;background:var(--secondary);"></span> Mujeres: 48%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabla comparativa -->
+        <div class="card" style="margin-bottom: 24px;">
+          <div class="card-header">
+            <h3 class="card-title">Comparativa por Grado</h3>
+            <div class="flex-gap">
+              <select class="form-select" style="width: auto; min-width: 120px;">
+                <option>Este mes</option>
+                <option>Mes anterior</option>
+                <option>Este año</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Grado</th>
+                  <th>Alumnos</th>
+                  <th>Promedio</th>
+                  <th>Tareas Completadas</th>
+                  <th>Asistencia</th>
+                  <th>Rendimiento</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>1° Primaria</strong></td>
+                  <td>215</td>
+                  <td>9.2</td>
+                  <td>85%</td>
+                  <td>96%</td>
+                  <td class="text-center">⭐⭐⭐⭐⭐</td>
+                </tr>
+                <tr>
+                  <td><strong>2° Primaria</strong></td>
+                  <td>208</td>
+                  <td>8.8</td>
+                  <td>78%</td>
+                  <td>94%</td>
+                  <td class="text-center">⭐⭐⭐⭐</td>
+                </tr>
+                <tr>
+                  <td><strong>3° Primaria</strong></td>
+                  <td>220</td>
+                  <td>7.8</td>
+                  <td>65%</td>
+                  <td>91%</td>
+                  <td class="text-center">⭐⭐⭐</td>
+                </tr>
+                <tr>
+                  <td><strong>4° Primaria</strong></td>
+                  <td>195</td>
+                  <td>8.5</td>
+                  <td>72%</td>
+                  <td>93%</td>
+                  <td class="text-center">⭐⭐⭐⭐</td>
+                </tr>
+                <tr>
+                  <td><strong>5° Primaria</strong></td>
+                  <td>210</td>
+                  <td>7.2</td>
+                  <td>58%</td>
+                  <td>88%</td>
+                  <td class="text-center">⭐⭐⭐</td>
+                </tr>
+                <tr>
+                  <td><strong>6° Primaria</strong></td>
+                  <td>236</td>
+                  <td>8.0</td>
+                  <td>70%</td>
+                  <td>90%</td>
+                  <td class="text-center">⭐⭐⭐⭐</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Reportes disponibles -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Reportes Disponibles</h3>
+          </div>
+          <div class="card-body">
+            <div class="grid-3">
+              <div class="card" style="cursor: pointer; transition: all 0.3s;" data-toast="Descargando reporte de rendimiento...">
+                <div class="card-body text-center" style="padding: 24px;">
+                  <div style="font-size: 40px; margin-bottom: 12px;">📊</div>
+                  <h4 style="font-weight: 600; margin-bottom: 4px;">Rendimiento General</h4>
+                  <p class="text-small text-muted">Reporte completo de calificaciones y promedios</p>
+                  <button class="btn btn-primary btn-sm mt-2">Descargar</button>
+                </div>
+              </div>
+
+              <div class="card" style="cursor: pointer; transition: all 0.3s;" data-toast="Descargando reporte de tareas...">
+                <div class="card-body text-center" style="padding: 24px;">
+                  <div style="font-size: 40px; margin-bottom: 12px;">📝</div>
+                  <h4 style="font-weight: 600; margin-bottom: 4px;">Tareas por Materia</h4>
+                  <p class="text-small text-muted">Análisis de entregas y cumplimiento por materia</p>
+                  <button class="btn btn-primary btn-sm mt-2">Descargar</button>
+                </div>
+              </div>
+
+              <div class="card" style="cursor: pointer; transition: all 0.3s;" data-toast="Descargando reporte de asistencia...">
+                <div class="card-body text-center" style="padding: 24px;">
+                  <div style="font-size: 40px; margin-bottom: 12px;">📅</div>
+                  <h4 style="font-weight: 600; margin-bottom: 4px;">Asistencia Mensual</h4>
+                  <p class="text-small text-muted">Reporte de asistencia por grado y grupo</p>
+                  <button class="btn btn-primary btn-sm mt-2">Descargar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notificaciones — Sistema de Seguimiento de Tareas Escolares</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header"><div class="sidebar-logo">📚</div><span class="sidebar-brand">TaskTracker</span></div>
+      <nav class="sidebar-nav">
+        <div class="nav-section"><p class="nav-label">Principal</p><a class="nav-item" data-page="dashboard.html" href="dashboard.html"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a></div>
+        <div class="nav-section">
+          <p class="nav-label">Gestión</p>
+          <a class="nav-item" data-page="usuarios.html" href="usuarios.html"><span class="nav-icon">👥</span><span class="nav-text">Usuarios</span><span class="nav-badge">12</span></a>
+          <a class="nav-item" data-page="docentes.html" href="docentes.html"><span class="nav-icon">👨‍🏫</span><span class="nav-text">Docentes</span></a>
+          <a class="nav-item" data-page="padres.html" href="padres.html"><span class="nav-icon">👪</span><span class="nav-text">Padres</span></a>
+          <a class="nav-item" data-page="alumnos.html" href="alumnos.html"><span class="nav-icon">🎒</span><span class="nav-text">Alumnos</span></a>
+          <a class="nav-item" data-page="tareas.html" href="tareas.html"><span class="nav-icon">📝</span><span class="nav-text">Tareas</span><span class="nav-badge">8</span></a>
+        </div>
+        <div class="nav-section">
+          <p class="nav-label">Herramientas</p>
+          <a class="nav-item" data-page="calendario.html" href="calendario.html"><span class="nav-icon">📅</span><span class="nav-text">Calendario</span></a>
+          <a class="nav-item active" data-page="notificaciones.html" href="notificaciones.html"><span class="nav-icon">🔔</span><span class="nav-text">Notificaciones</span><span class="nav-badge">5</span></a>
+          <a class="nav-item" data-page="reportes.html" href="reportes.html"><span class="nav-icon">📈</span><span class="nav-text">Reportes</span></a>
+        </div>
+        <div class="nav-section"><p class="nav-label">Sistema</p><a class="nav-item" data-page="configuracion.html" href="configuracion.html"><span class="nav-icon">⚙️</span><span class="nav-text">Configuración</span></a></div>
+      </nav>
+      <div class="sidebar-footer"><a class="nav-item" href="index.html"><span class="nav-icon">🚪</span><span class="nav-text">Cerrar Sesión</span></a></div>
+    </aside>
+
+    <button class="sidebar-toggle" id="sidebarToggle"><span class="toggle-icon">◀</span></button>
+
+    <main class="main-content">
+      <header class="navbar">
+        <div class="navbar-left"><div class="navbar-search"><span class="search-icon">🔍</span><input type="text" class="table-search" placeholder="Buscar notificaciones..." /></div></div>
+        <div class="navbar-right">
+          <button class="navbar-btn" data-toast="Notificaciones actualizadas">🔔<span class="badge-dot"></span></button>
+          <div class="dropdown">
+            <button class="navbar-btn dropdown-toggle">⚙️</button>
+            <div class="dropdown-menu">
+              <div class="dropdown-item" onclick="window.location.href='configuracion.html'">⚙️ Configuración</div>
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-item" onclick="window.location.href='index.html'">🚪 Cerrar Sesión</div>
+            </div>
+          </div>
+          <div class="navbar-user"><div class="navbar-avatar">AD</div><div class="navbar-user-info"><div class="navbar-user-name">Admin Principal</div><div class="navbar-user-role">Administrador</div></div></div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Notificaciones</h1>
+            <p class="page-subtitle">Centro de notificaciones y alertas del sistema</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-secondary btn-sm" data-toast="Todas las notificaciones marcadas como leídas">✓ Marcar todo leído</button>
+          </div>
+        </div>
+
+        <!-- Alertas superiores -->
+        <div class="alert alert-info animate-slide-up">
+          <span class="alert-icon">ℹ️</span>
+          <div class="alert-content">
+            <div class="alert-title">Centro de Notificaciones</div>
+            Tienes <strong>5 notificaciones sin leer</strong>. Revisa las novedades del sistema.
+          </div>
+          <span class="alert-close">&times;</span>
+        </div>
+
+        <!-- Filtros -->
+        <div class="search-bar" style="margin-bottom: 20px;">
+          <div class="filter-group">
+            <button class="btn btn-primary btn-sm">Todas</button>
+            <button class="btn btn-secondary btn-sm" data-toast="Filtrando no leídas">No leídas</button>
+            <button class="btn btn-secondary btn-sm" data-toast="Filtrando por tareas">Tareas</button>
+            <button class="btn btn-secondary btn-sm" data-toast="Filtrando por sistema">Sistema</button>
+          </div>
+        </div>
+
+        <!-- Lista de notificaciones -->
+        <div class="notification-list">
+          <div class="notification-item unread">
+            <div class="notification-icon" style="background: var(--primary-light); color: var(--primary);">📝</div>
+            <div class="notification-content">
+              <div class="notification-text"><strong>Nueva tarea asignada</strong> — El docente Carlos Hernández asignó "Revolución Mexicana" al grupo 5°B</div>
+              <div class="notification-time">Hace 15 minutos</div>
+            </div>
+            <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver" style="flex-shrink:0;">👁️</button>
+          </div>
+
+          <div class="notification-item unread">
+            <div class="notification-icon" style="background: var(--warning-light); color: #d97706;">⏰</div>
+            <div class="notification-content">
+              <div class="notification-text"><strong>Tarea próxima a vencer</strong> — "Álgebra Lineal" de Matemáticas vence en 2 días</div>
+              <div class="notification-time">Hace 1 hora</div>
+            </div>
+            <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver" style="flex-shrink:0;">👁️</button>
+          </div>
+
+          <div class="notification-item unread">
+            <div class="notification-icon" style="background: var(--danger-light); color: var(--danger);">⚠️</div>
+            <div class="notification-content">
+              <div class="notification-text"><strong>Tarea retrasada</strong> — "Ecuaciones Cuadráticas" tiene 3 entregas retrasadas</div>
+              <div class="notification-time">Hace 3 horas</div>
+            </div>
+            <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver" style="flex-shrink:0;">👁️</button>
+          </div>
+
+          <div class="notification-item unread">
+            <div class="notification-icon" style="background: var(--secondary-light); color: var(--secondary);">✅</div>
+            <div class="notification-content">
+              <div class="notification-text"><strong>Entrega recibida</strong> — 15 alumnos entregaron el "Proyecto Final" de Ciencias</div>
+              <div class="notification-time">Hace 5 horas</div>
+            </div>
+            <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver" style="flex-shrink:0;">👁️</button>
+          </div>
+
+          <div class="notification-item unread">
+            <div class="notification-icon" style="background: #eef2ff; color: #4f46e5;">👤</div>
+            <div class="notification-content">
+              <div class="notification-text"><strong>Nuevo registro</strong> — El padre Roberto Hernández se registró en la plataforma</div>
+              <div class="notification-time">Hace 1 día</div>
+            </div>
+            <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver" style="flex-shrink:0;">👁️</button>
+          </div>
+
+          <div class="notification-item">
+            <div class="notification-icon" style="background: var(--primary-light); color: var(--primary);">📚</div>
+            <div class="notification-content">
+              <div class="notification-text"><strong>Actualización del sistema</strong> — Nueva versión disponible con mejoras en el módulo de tareas</div>
+              <div class="notification-time">Hace 3 días</div>
+            </div>
+            <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver" style="flex-shrink:0;">👁️</button>
+          </div>
+
+          <div class="notification-item">
+            <div class="notification-icon" style="background: var(--secondary-light); color: var(--secondary);">📊</div>
+            <div class="notification-content">
+              <div class="notification-text"><strong>Reporte disponible</strong> — El reporte de rendimiento mensual ya está listo para descargar</div>
+              <div class="notification-time">Hace 5 días</div>
+            </div>
+            <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver" style="flex-shrink:0;">👁️</button>
+          </div>
+
+          <div class="notification-item">
+            <div class="notification-icon" style="background: var(--warning-light); color: #d97706;">⚙️</div>
+            <div class="notification-content">
+              <div class="notification-text"><strong>Mantenimiento programado</strong> — El sistema estará en mantenimiento el sábado de 2:00 a 4:00 AM</div>
+              <div class="notification-time">Hace 1 semana</div>
+            </div>
+            <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver" style="flex-shrink:0;">👁️</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
