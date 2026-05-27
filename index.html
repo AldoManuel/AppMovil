@@ -1,67 +1,87 @@
 <!DOCTYPE html>
-<!-- ==========================================================
-  Sistema de Gestión Educativa
-  Página: Login Administrador
-  ========================================================== -->
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Iniciar Sesión — Sistema de Gestión Educativa</title>
   <link rel="stylesheet" href="assets/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase.js"></script>
 </head>
 <body class="login-page">
 
-  <!-- ====== LADO IZQUIERDO: FORMULARIO ====== -->
   <div class="login-left">
     <div class="login-container">
 
-      <!-- Logo -->
       <div class="login-logo">
         <div class="login-logo-icon">📚</div>
         <span class="login-logo-text">TaskTracker</span>
       </div>
 
-      <!-- Título -->
-      <h1 class="login-title">Iniciar Sesión</h1>
-      <p class="login-subtitle">Accede al panel de administración educativa</p>
+      <div class="tabs" data-tab-container style="margin-bottom: 24px;">
+        <div class="tab-item active" data-tab="tab-login">Iniciar Sesión</div>
+        <div class="tab-item" data-tab="tab-register">Registrarse</div>
+      </div>
 
-      <!-- Formulario (solo visual) -->
-      <form class="login-form" onsubmit="return false;">
-        <div class="form-group">
-          <label class="form-label" for="loginEmail">Correo electrónico</label>
-          <input
-            class="form-input"
-            type="email"
-            id="loginEmail"
-            placeholder="admin@institucion.edu"
-            autocomplete="email"
-          />
-        </div>
+      <div id="tab-login" class="tab-content active">
+        <p class="login-subtitle">Accede al panel de administración educativa</p>
+        <form class="login-form" id="loginForm">
+          <div class="form-group">
+            <label class="form-label" for="loginEmail">Correo electrónico</label>
+            <input class="form-input" type="email" id="loginEmail" placeholder="admin@institucion.edu" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="loginPassword">Contraseña</label>
+            <input class="form-input" type="password" id="loginPassword" placeholder="••••••••" required />
+          </div>
+          <div id="loginError" class="alert alert-error" style="display: none; margin-bottom: 12px;"></div>
+          <button class="btn btn-primary btn-lg w-100" type="submit" id="loginBtn">Iniciar Sesión</button>
+        </form>
+      </div>
 
-        <div class="form-group">
-          <label class="form-label" for="loginPassword">Contraseña</label>
-          <input
-            class="form-input"
-            type="password"
-            id="loginPassword"
-            placeholder="••••••••"
-            autocomplete="current-password"
-          />
-        </div>
+      <div id="tab-register" class="tab-content">
+        <p class="login-subtitle">Crea una cuenta en el sistema educativo</p>
+        <form class="login-form" id="registerForm">
+          <div class="form-group">
+            <label class="form-label" for="regNombre">Nombre</label>
+            <input class="form-input" type="text" id="regNombre" placeholder="Tu nombre" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regApPat">Apellido Paterno</label>
+            <input class="form-input" type="text" id="regApPat" placeholder="Apellido paterno" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regApMat">Apellido Materno</label>
+            <input class="form-input" type="text" id="regApMat" placeholder="Apellido materno" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regCorreo">Correo electrónico</label>
+            <input class="form-input" type="email" id="regCorreo" placeholder="correo@institucion.edu" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regTelefono">Teléfono</label>
+            <input class="form-input" type="tel" id="regTelefono" placeholder="+52 555 123 4567" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regRol">Rol</label>
+            <select class="form-input" id="regRol" required>
+              <option value="">Selecciona un rol</option>
+              <option value="DOCENTE">Docente</option>
+              <option value="PADRE">Padre de Familia</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regPassword">Contraseña</label>
+            <input class="form-input" type="password" id="regPassword" placeholder="••••••••" required />
+          </div>
+          <div id="registerError" class="alert alert-error" style="display: none; margin-bottom: 12px;"></div>
+          <button class="btn btn-primary btn-lg w-100" type="submit" id="registerBtn">Crear Cuenta</button>
+        </form>
+      </div>
 
-        <button class="btn btn-primary btn-lg w-100" onclick="window.location.href='dashboard.html'">
-          Iniciar Sesión
-        </button>
-      </form>
-
-      <p class="login-footer">
-        ¿Olvidaste tu contraseña? <a href="#" style="color: var(--primary); font-weight: 500;">Recuperar acceso</a>
-      </p>
     </div>
   </div>
 
-  <!-- ====== LADO DERECHO: ILUSTRACIÓN ====== -->
   <div class="login-right">
     <div class="login-illustration">
       <div class="login-illustration-icon">🎓</div>
@@ -73,5 +93,106 @@
     </div>
   </div>
 
+  <script src="assets/js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      document.getElementById('loginForm').addEventListener('submit', async function (e) {
+        e.preventDefault()
+        const email = document.getElementById('loginEmail').value.trim()
+        const password = document.getElementById('loginPassword').value
+        const errorEl = document.getElementById('loginError')
+        const btn = document.getElementById('loginBtn')
+
+        btn.disabled = true
+        btn.textContent = 'Ingresando...'
+        errorEl.style.display = 'none'
+
+        console.log('[Auth] Iniciando sesión con:', email)
+
+        try {
+          const result = await iniciarSesion(email, password)
+          if (result.success) {
+            console.log('[Auth] Login exitoso:', result.nombre, '(' + result.rol + ')')
+            localStorage.setItem('session_usuario', JSON.stringify({
+              id_usuario: result.id_usuario,
+              nombre: result.nombre,
+              apellido_paterno: result.apellido_paterno,
+              correo: result.correo,
+              rol: result.rol
+            }))
+            console.log('[Auth] Sesión guardada, redirigiendo...')
+            window.location.href = 'dashboard.html'
+          } else {
+            console.error('[Auth] Error de login:', result.error)
+            errorEl.textContent = result.error
+            errorEl.style.display = 'block'
+          }
+        } catch (err) {
+          console.error('[Auth] Error inesperado:', err.message)
+          errorEl.textContent = err.message || 'Error de conexión con el servidor'
+          errorEl.style.display = 'block'
+        } finally {
+          btn.disabled = false
+          btn.textContent = 'Iniciar Sesión'
+        }
+      })
+
+      document.getElementById('registerForm').addEventListener('submit', async function (e) {
+        e.preventDefault()
+        const errorEl = document.getElementById('registerError')
+        const btn = document.getElementById('registerBtn')
+
+        const password = document.getElementById('regPassword').value
+        if (password.length < 6) {
+          errorEl.textContent = 'La contraseña debe tener al menos 6 caracteres'
+          errorEl.style.display = 'block'
+          return
+        }
+
+        btn.disabled = true
+        btn.textContent = 'Registrando...'
+        errorEl.style.display = 'none'
+
+        const datos = {
+          nombre: document.getElementById('regNombre').value.trim(),
+          apellidoPaterno: document.getElementById('regApPat').value.trim(),
+          apellidoMaterno: document.getElementById('regApMat').value.trim(),
+          correo: document.getElementById('regCorreo').value.trim(),
+          telefono: document.getElementById('regTelefono').value.trim(),
+          rol: document.getElementById('regRol').value,
+          contrasena: password
+        }
+
+        try {
+          const result = await registrarUsuario(datos)
+          if (result.success) {
+            console.log('[Auth] Registro exitoso:', result.nombre, '(' + result.rol + ')')
+            localStorage.setItem('session_usuario', JSON.stringify({
+              id_usuario: result.id_usuario,
+              nombre: result.nombre,
+              apellido_paterno: result.apellido_paterno,
+              correo: result.correo,
+              rol: result.rol
+            }))
+            console.log('[Auth] Sesión guardada, redirigiendo...')
+            window.location.href = 'dashboard.html'
+          } else {
+            console.error('[Auth] Error de registro:', result.error)
+            errorEl.textContent = result.error
+            errorEl.style.display = 'block'
+          }
+        } catch (err) {
+          console.error('[Auth] Error inesperado:', err.message)
+          errorEl.textContent = err.message || 'Error de conexión con el servidor'
+          errorEl.style.display = 'block'
+        } finally {
+          btn.disabled = false
+          btn.textContent = 'Crear Cuenta'
+        }
+      })
+
+    })
+  </script>
 </body>
 </html>
