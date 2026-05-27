@@ -91,7 +91,6 @@ Genera la estructura del proyecto siguiendo MVC:
 ├── docentes.html
 ├── padres.html
 ├── alumnos.html
-├── tareas.html
 ├── calendario.html
 ├── notificaciones.html
 ├── configuracion.html

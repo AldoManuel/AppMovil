@@ -1,5 +1,5 @@
 /* ==========================================================
-   Sistema de Seguimiento de Tareas Escolares
+   Sistema de Gestión Educativa
    JavaScript Global Compartido
    Funcionalidades: Sidebar, Modales, Tema, Navegación
    ========================================================== */

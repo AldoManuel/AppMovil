@@ -1,10 +1,10 @@
-# TaskTracker — Sistema de Seguimiento de Tareas Escolares
+# TaskTracker — Sistema de Gestión Educativa
 
-Panel administrativo educativo para la gestión de docentes, alumnos, padres de familia, tareas, calendario y reportes.
+Panel administrativo educativo para la gestión de docentes, alumnos, padres de familia, calendario y reportes.
 
 ## Tecnologías
 
-- **HTML5** — 11 páginas estructuradas
+- **HTML5** — 10 páginas estructuradas
 - **CSS3** — Diseño responsive, tema claro/oscuro, animaciones
 - **JavaScript Vanilla** — Sidebar, modales, tabs, búsqueda, toasts, tema oscuro
 
@@ -13,13 +13,12 @@ Panel administrativo educativo para la gestión de docentes, alumnos, padres de 
 | Ruta | Descripción |
 |---|---|
 | `index.html` | Inicio de sesión |
-| `dashboard.html` | Panel principal con estadísticas y gráficas |
+| `dashboard.html` | Panel principal con estadísticas |
 | `usuarios.html` | Gestión de usuarios |
 | `docentes.html` | Perfiles de docentes |
 | `padres.html` | Registro de padres |
 | `alumnos.html` | Perfiles de alumnos |
-| `tareas.html` | Seguimiento de tareas |
-| `calendario.html` | Calendario escolar |
+| `calendario.html` | Calendario escolar (solo vista) |
 | `notificaciones.html` | Centro de notificaciones |
 | `reportes.html` | Estadísticas y reportes |
 | `configuracion.html` | Ajustes del sistema |

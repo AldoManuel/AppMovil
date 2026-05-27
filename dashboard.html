@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <!-- ==========================================================
-  Sistema de Seguimiento de Tareas Escolares
+  Sistema de Gestión Educativa
   Página: Dashboard Principal
   ========================================================== -->
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard — Sistema de Seguimiento de Tareas Escolares</title>
+  <title>Dashboard — Sistema de Gestión Educativa</title>
   <link rel="stylesheet" href="assets/css/style.css" />
 </head>
 <body>
@@ -48,11 +48,6 @@
           <a class="nav-item" data-page="alumnos.html" href="alumnos.html">
             <span class="nav-icon">🎒</span>
             <span class="nav-text">Alumnos</span>
-          </a>
-          <a class="nav-item" data-page="tareas.html" href="tareas.html">
-            <span class="nav-icon">📝</span>
-            <span class="nav-text">Tareas</span>
-            <span class="nav-badge">8</span>
           </a>
         </div>
 
@@ -176,15 +171,6 @@
           </div>
 
           <div class="stat-card">
-            <div class="stat-icon yellow">📝</div>
-            <div class="stat-info">
-              <div class="stat-label">Tareas</div>
-              <div class="stat-value">342</div>
-              <span class="stat-change down">↓ 3% este mes</span>
-            </div>
-          </div>
-
-          <div class="stat-card">
             <div class="stat-icon red">🔔</div>
             <div class="stat-info">
               <div class="stat-label">Notificaciones</div>
@@ -194,52 +180,8 @@
           </div>
         </div>
 
-        <!-- Grid: Gráfica + Calendario -->
+        <!-- Grid: Calendario -->
         <div class="grid-2" style="margin-bottom: 24px;">
-
-          <!-- Gráfica de Barras -->
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">Tareas por Semana</h3>
-              <span class="text-small text-muted">Últimas 4 semanas</span>
-            </div>
-            <div class="card-body">
-              <div class="chart-container">
-                <div class="chart-bar-group">
-                  <div class="chart-bar" style="background: var(--primary); height: 0%;" data-height="85" data-delay="200">
-                    <span class="chart-tooltip">85 tareas</span>
-                  </div>
-                  <div class="chart-bar" style="background: var(--secondary); height: 0%;" data-height="70" data-delay="400">
-                    <span class="chart-tooltip">70 tareas</span>
-                  </div>
-                  <div class="chart-bar" style="background: #f59e0b; height: 0%;" data-height="92" data-delay="600">
-                    <span class="chart-tooltip">92 tareas</span>
-                  </div>
-                  <div class="chart-bar" style="background: var(--danger); height: 0%;" data-height="55" data-delay="800">
-                    <span class="chart-tooltip">55 tareas</span>
-                  </div>
-                  <div class="chart-bar" style="background: #7c3aed; height: 0%;" data-height="78" data-delay="1000">
-                    <span class="chart-tooltip">78 tareas</span>
-                  </div>
-                  <div class="chart-bar" style="background: var(--primary); height: 0%;" data-height="60" data-delay="1200">
-                    <span class="chart-tooltip">60 tareas</span>
-                  </div>
-                  <div class="chart-bar" style="background: var(--secondary); height: 0%;" data-height="45" data-delay="1400">
-                    <span class="chart-tooltip">45 tareas</span>
-                  </div>
-                </div>
-                <div class="chart-labels">
-                  <span class="chart-label">Lun</span>
-                  <span class="chart-label">Mar</span>
-                  <span class="chart-label">Mié</span>
-                  <span class="chart-label">Jue</span>
-                  <span class="chart-label">Vie</span>
-                  <span class="chart-label">Sáb</span>
-                  <span class="chart-label">Dom</span>
-                </div>
-              </div>
-            </div>
-          </div>
 
           <!-- Calendario Widget -->
           <div class="card">
@@ -335,18 +277,6 @@
                   </thead>
                   <tbody>
                     <tr>
-                      <td><strong>María García</strong></td>
-                      <td>Creó tarea "Matemáticas"</td>
-                      <td>Hoy 09:15</td>
-                      <td><span class="status status-delivered"><span class="status-dot"></span>Completado</span></td>
-                    </tr>
-                    <tr>
-                      <td><strong>Carlos López</strong></td>
-                      <td>Entregó tarea "Historia"</td>
-                      <td>Hoy 08:45</td>
-                      <td><span class="status status-active"><span class="status-dot"></span>Activo</span></td>
-                    </tr>
-                    <tr>
                       <td><strong>Ana Martínez</strong></td>
                       <td>Actualizó perfil</td>
                       <td>Ayer 16:30</td>
@@ -378,27 +308,6 @@
             </div>
             <div class="card-body" style="padding: 12px 16px;">
               <div class="notification-list">
-                <div class="notification-item unread">
-                  <div class="notification-icon" style="background: var(--primary-light); color: var(--primary);">📝</div>
-                  <div class="notification-content">
-                    <div class="notification-text"><strong>Nueva tarea:</strong> Matemáticas - Álgebra Lineal</div>
-                    <div class="notification-time">Hace 10 minutos</div>
-                  </div>
-                </div>
-                <div class="notification-item unread">
-                  <div class="notification-icon" style="background: var(--danger-light); color: var(--danger);">⚠️</div>
-                  <div class="notification-content">
-                    <div class="notification-text"><strong>Tarea retrasada:</strong> Historia - Revolución Mexicana</div>
-                    <div class="notification-time">Hace 1 hora</div>
-                  </div>
-                </div>
-                <div class="notification-item">
-                  <div class="notification-icon" style="background: var(--secondary-light); color: var(--secondary);">✅</div>
-                  <div class="notification-content">
-                    <div class="notification-text"><strong>Entrega recibida:</strong> Ciencias - Proyecto Final</div>
-                    <div class="notification-time">Hace 3 horas</div>
-                  </div>
-                </div>
                 <div class="notification-item">
                   <div class="notification-icon" style="background: var(--warning-light); color: #d97706;">👤</div>
                   <div class="notification-content">
