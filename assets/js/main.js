@@ -7,6 +7,58 @@
 document.addEventListener('DOMContentLoaded', function () {
 
   /* ==========================================================
+     VERIFICACIÓN DE SESIÓN (páginas internas)
+     ========================================================== */
+  if (!document.body.classList.contains('login-page')) {
+    console.log('[Session] Verificando sesión...')
+    const sessionData = localStorage.getItem('session_usuario')
+    if (!sessionData) {
+      console.log('[Session] Sin sesión, redirigiendo...')
+      window.location.href = 'index.html'
+      return
+    }
+
+    try {
+      const user = JSON.parse(sessionData)
+      console.log('[Session] Usuario:', user.nombre, '(' + user.rol + ')')
+
+      const avatar = document.querySelector('.navbar-avatar')
+      const userName = document.querySelector('.navbar-user-name')
+      const userRole = document.querySelector('.navbar-user-role')
+
+      if (avatar) {
+        const initials = (user.nombre?.[0] || '') + (user.apellido_paterno?.[0] || '')
+        avatar.textContent = initials || 'U'
+      }
+      if (userName) {
+        userName.textContent = (user.nombre || '') + (user.apellido_paterno ? ' ' + user.apellido_paterno : '')
+      }
+      if (userRole) {
+        const roles = { ADMIN: 'Administrador', DOCENTE: 'Docente', PADRE: 'Padre' }
+        userRole.textContent = roles[user.rol] || user.rol
+      }
+    } catch (e) {
+      console.error('[Session] Error al leer sesión:', e.message)
+      localStorage.removeItem('session_usuario')
+      window.location.href = 'index.html'
+      return
+    }
+  }
+
+  /* ==========================================================
+     CERRAR SESIÓN
+     ========================================================== */
+  document.querySelectorAll('[data-logout]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      e.preventDefault()
+      console.log('[Auth] Cerrando sesión...')
+      localStorage.removeItem('session_usuario')
+      console.log('[Auth] Sesión cerrada, redirigiendo...')
+      window.location.href = 'index.html'
+    })
+  })
+
+  /* ==========================================================
      SIDEBAR TOGGLE
      ========================================================== */
   const sidebar = document.getElementById('sidebar');
@@ -15,8 +67,6 @@ document.addEventListener('DOMContentLoaded', function () {
   if (sidebarToggle && sidebar) {
     sidebarToggle.addEventListener('click', function () {
       sidebar.classList.toggle('collapsed');
-
-      // Actualizar atributo aria-expanded para accesibilidad
       const isCollapsed = sidebar.classList.contains('collapsed');
       sidebarToggle.setAttribute('aria-expanded', !isCollapsed);
     });
@@ -28,7 +78,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const themeToggle = document.getElementById('themeToggle');
 
   if (themeToggle) {
-    // Cargar preferencia guardada
     const savedTheme = localStorage.getItem('app-theme');
     if (savedTheme) {
       document.documentElement.setAttribute('data-theme', savedTheme);
@@ -63,7 +112,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const modalTriggers = document.querySelectorAll('[data-modal]');
   const modalCloses = document.querySelectorAll('.modal-close, .modal-overlay');
 
-  // Abrir modal
   modalTriggers.forEach(function (trigger) {
     trigger.addEventListener('click', function (e) {
       e.preventDefault();
@@ -76,9 +124,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  // Cerrar modal
   modalCloses.forEach(function (closeEl) {
-    closeEl.addEventListener('click', function () {
+    closeEl.addEventListener('click', function (e) {
+      if (closeEl.classList.contains('modal-overlay') && e.target !== closeEl) return;
       const modal = this.closest('.modal-overlay');
       if (modal) {
         modal.classList.remove('show');
@@ -87,7 +135,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  // Cerrar modal con tecla Escape
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
       const openModal = document.querySelector('.modal-overlay.show');
@@ -108,17 +155,13 @@ document.addEventListener('DOMContentLoaded', function () {
       e.stopPropagation();
       const dropdown = this.closest('.dropdown');
       const menu = dropdown.querySelector('.dropdown-menu');
-
-      // Cerrar otros dropdowns
       document.querySelectorAll('.dropdown-menu.show').forEach(function (m) {
         if (m !== menu) m.classList.remove('show');
       });
-
       menu.classList.toggle('show');
     });
   });
 
-  // Cerrar dropdown al hacer clic fuera
   document.addEventListener('click', function () {
     document.querySelectorAll('.dropdown-menu.show').forEach(function (menu) {
       menu.classList.remove('show');
@@ -137,18 +180,12 @@ document.addEventListener('DOMContentLoaded', function () {
       tab.addEventListener('click', function () {
         const target = this.getAttribute('data-tab');
         const parent = this.closest('[data-tab-container]') || this.parentElement.parentElement;
-
-        // Desactivar todos los tabs del grupo
         tabGroup.querySelectorAll('.tab-item').forEach(function (t) {
           t.classList.remove('active');
         });
-
-        // Desactivar todos los contenidos
         parent.querySelectorAll('.tab-content').forEach(function (c) {
           c.classList.remove('active');
         });
-
-        // Activar tab y contenido
         this.classList.add('active');
         const content = document.getElementById(target);
         if (content) {
@@ -187,7 +224,6 @@ document.addEventListener('DOMContentLoaded', function () {
       const query = this.value.toLowerCase();
       const table = this.closest('.table-container') || this.closest('.card') || document;
       const rows = table.querySelectorAll('table tbody tr');
-
       rows.forEach(function (row) {
         const text = row.textContent.toLowerCase();
         if (text.includes(query)) {
@@ -206,7 +242,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   chartBars.forEach(function (bar) {
     const targetHeight = bar.getAttribute('data-height') || '0';
-    // Retraso escalonado para animación
     const delay = parseInt(bar.getAttribute('data-delay')) || 0;
     setTimeout(function () {
       bar.style.height = targetHeight + '%';
@@ -226,7 +261,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   function showToast(message) {
-    // Eliminar toast previo si existe
     const prevToast = document.querySelector('.toast-notification');
     if (prevToast) prevToast.remove();
 
@@ -234,7 +268,6 @@ document.addEventListener('DOMContentLoaded', function () {
     toast.className = 'toast-notification';
     toast.textContent = message;
 
-    // Estilos inline para el toast
     Object.assign(toast.style, {
       position: 'fixed',
       bottom: '24px',
@@ -255,7 +288,6 @@ document.addEventListener('DOMContentLoaded', function () {
       borderLeft: '4px solid var(--primary, #1a73e8)'
     });
 
-    // Icono de check
     const icon = document.createElement('span');
     icon.textContent = '✓';
     icon.style.cssText = 'color: var(--primary, #1a73e8); font-weight: 700; font-size: 16px;';
@@ -263,7 +295,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.body.appendChild(toast);
 
-    // Auto cerrar después de 3 segundos
     setTimeout(function () {
       toast.style.opacity = '0';
       toast.style.transform = 'translateX(40px)';
@@ -273,6 +304,8 @@ document.addEventListener('DOMContentLoaded', function () {
       }, 300);
     }, 3000);
   }
+
+  window.showToast = showToast;
 
   /* ==========================================================
      TOOLBAR DE ACCIONES (Editar, Eliminar, Ver)
@@ -309,7 +342,6 @@ document.addEventListener('DOMContentLoaded', function () {
     btn.addEventListener('click', function (e) {
       e.preventDefault();
       showToast('Formulario de registro abierto (simulado)');
-      // Buscar y abrir modal de agregar si existe
       const modalId = this.getAttribute('data-modal');
       if (modalId) {
         const modal = document.getElementById(modalId);

@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Docentes — Sistema de Gestión Educativa</title>
   <link rel="stylesheet" href="assets/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase.js"></script>
 </head>
 <body>
   <div class="app-layout">
@@ -26,7 +28,7 @@
         </div>
         <div class="nav-section"><p class="nav-label">Sistema</p><a class="nav-item" data-page="configuracion.html" href="configuracion.html"><span class="nav-icon">⚙️</span><span class="nav-text">Configuración</span></a></div>
       </nav>
-      <div class="sidebar-footer"><a class="nav-item" href="index.html"><span class="nav-icon">🚪</span><span class="nav-text">Cerrar Sesión</span></a></div>
+      <div class="sidebar-footer"><a class="nav-item" href="#" data-logout><span class="nav-icon">🚪</span><span class="nav-text">Cerrar Sesión</span></a></div>
     </aside>
 
     <button class="sidebar-toggle" id="sidebarToggle"><span class="toggle-icon">◀</span></button>
@@ -41,7 +43,7 @@
             <div class="dropdown-menu">
               <div class="dropdown-item" onclick="window.location.href='configuracion.html'">⚙️ Configuración</div>
               <div class="dropdown-divider"></div>
-              <div class="dropdown-item" onclick="window.location.href='index.html'">🚪 Cerrar Sesión</div>
+              <div class="dropdown-item" data-logout>🚪 Cerrar Sesión</div>
             </div>
           </div>
           <div class="navbar-user"><div class="navbar-avatar">AD</div><div class="navbar-user-info"><div class="navbar-user-name">Admin Principal</div><div class="navbar-user-role">Administrador</div></div></div>

@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Calendario — Sistema de Gestión Educativa</title>
   <link rel="stylesheet" href="assets/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase.js"></script>
 </head>
 <body>
   <div class="app-layout">
@@ -26,7 +28,7 @@
         </div>
         <div class="nav-section"><p class="nav-label">Sistema</p><a class="nav-item" data-page="configuracion.html" href="configuracion.html"><span class="nav-icon">⚙️</span><span class="nav-text">Configuración</span></a></div>
       </nav>
-      <div class="sidebar-footer"><a class="nav-item" href="index.html"><span class="nav-icon">🚪</span><span class="nav-text">Cerrar Sesión</span></a></div>
+      <div class="sidebar-footer"><a class="nav-item" href="#" data-logout><span class="nav-icon">🚪</span><span class="nav-text">Cerrar Sesión</span></a></div>
     </aside>
 
     <button class="sidebar-toggle" id="sidebarToggle"><span class="toggle-icon">◀</span></button>
@@ -41,7 +43,7 @@
             <div class="dropdown-menu">
               <div class="dropdown-item" onclick="window.location.href='configuracion.html'">⚙️ Configuración</div>
               <div class="dropdown-divider"></div>
-              <div class="dropdown-item" onclick="window.location.href='index.html'">🚪 Cerrar Sesión</div>
+              <div class="dropdown-item" data-logout>🚪 Cerrar Sesión</div>
             </div>
           </div>
           <div class="navbar-user"><div class="navbar-avatar">AD</div><div class="navbar-user-info"><div class="navbar-user-name">Admin Principal</div><div class="navbar-user-role">Administrador</div></div></div>
@@ -52,9 +54,9 @@
         <div class="page-header">
           <div>
             <h1 class="page-title">Calendario Escolar</h1>
-            <p class="page-subtitle">Vista de eventos académicos, fechas de entrega y actividades registradas por docentes</p>
+            <p class="page-subtitle">Vista de eventos académicos, fechas de entrega y actividades registradas</p>
           </div>
-          <div class="page-actions">
+          <div class="page-actions" id="calendarActions">
           </div>
         </div>
 
@@ -62,123 +64,25 @@
           <div class="calendar" style="grid-column: 1 / -1;">
             <div class="calendar-header">
               <div class="flex-gap">
-                <button class="btn btn-secondary btn-icon" style="width:36px;height:36px;">◀</button>
-                <h3 class="calendar-title">Mayo 2026</h3>
-                <button class="btn btn-secondary btn-icon" style="width:36px;height:36px;">▶</button>
+                <button class="btn btn-secondary btn-icon" id="prevMonthBtn" style="width:36px;height:36px;">◀</button>
+                <h3 class="calendar-title" id="calendarTitle">Mayo 2026</h3>
+                <button class="btn btn-secondary btn-icon" id="nextMonthBtn" style="width:36px;height:36px;">▶</button>
               </div>
-              <button class="btn btn-secondary btn-sm" data-toast="Vista actualizada">Hoy</button>
+              <button class="btn btn-secondary btn-sm" id="todayBtn">Hoy</button>
             </div>
-            <div class="calendar-grid">
-              <div class="calendar-weekday">Dom</div>
-              <div class="calendar-weekday">Lun</div>
-              <div class="calendar-weekday">Mar</div>
-              <div class="calendar-weekday">Mié</div>
-              <div class="calendar-weekday">Jue</div>
-              <div class="calendar-weekday">Vie</div>
-              <div class="calendar-weekday">Sáb</div>
-
-              <div class="calendar-day other-month"><span class="day-number">27</span></div>
-              <div class="calendar-day other-month"><span class="day-number">28</span></div>
-              <div class="calendar-day other-month"><span class="day-number">29</span></div>
-              <div class="calendar-day other-month"><span class="day-number">30</span></div>
-              <div class="calendar-day"><span class="day-number">1</span></div>
-              <div class="calendar-day"><span class="day-number">2</span></div>
-              <div class="calendar-day"><span class="day-number">3</span></div>
-
-              <div class="calendar-day"><span class="day-number">4</span></div>
-              <div class="calendar-day"><span class="day-number">5</span></div>
-              <div class="calendar-day today"><span class="day-number">6</span></div>
-              <div class="calendar-day"><span class="day-number">7</span></div>
-              <div class="calendar-day"><span class="day-number">8</span></div>
-              <div class="calendar-day"><span class="day-number">9</span></div>
-              <div class="calendar-day"><span class="day-number">10</span></div>
-
-              <div class="calendar-day">
-                <span class="day-number">11</span>
-                <div class="calendar-event event-blue">📝 Entrega Matemáticas</div>
-              </div>
-              <div class="calendar-day"><span class="day-number">12</span></div>
-              <div class="calendar-day">
-                <span class="day-number">13</span>
-                <div class="calendar-event event-green">🎓 Junta de Padres</div>
-              </div>
-              <div class="calendar-day"><span class="day-number">14</span></div>
-              <div class="calendar-day">
-                <span class="day-number">15</span>
-                <div class="calendar-event event-purple">📚 Examen Historia</div>
-              </div>
-              <div class="calendar-day"><span class="day-number">16</span></div>
-              <div class="calendar-day"><span class="day-number">17</span></div>
-
-              <div class="calendar-day"><span class="day-number">18</span></div>
-              <div class="calendar-day"><span class="day-number">19</span></div>
-              <div class="calendar-day"><span class="day-number">20</span></div>
-              <div class="calendar-day">
-                <span class="day-number">21</span>
-                <div class="calendar-event event-yellow">📝 Proyecto Ciencias</div>
-              </div>
-              <div class="calendar-day"><span class="day-number">22</span></div>
-              <div class="calendar-day"><span class="day-number">23</span></div>
-              <div class="calendar-day"><span class="day-number">24</span></div>
-
-              <div class="calendar-day"><span class="day-number">25</span></div>
-              <div class="calendar-day"><span class="day-number">26</span></div>
-              <div class="calendar-day"><span class="day-number">27</span></div>
-              <div class="calendar-day"><span class="day-number">28</span></div>
-              <div class="calendar-day">
-                <span class="day-number">29</span>
-                <div class="calendar-event event-red">⚠️ Fin de mes</div>
-              </div>
-              <div class="calendar-day"><span class="day-number">30</span></div>
-              <div class="calendar-day"><span class="day-number">31</span></div>
+            <div class="calendar-grid" id="calendarGrid">
             </div>
           </div>
 
-          <!-- Lista de eventos -->
           <div class="card">
             <div class="card-header"><h3 class="card-title">Eventos Próximos</h3></div>
             <div class="card-body">
-              <div class="notification-list">
-                <div class="notification-item">
-                  <div class="notification-icon" style="background: var(--primary-light); color: var(--primary);">📝</div>
-                  <div class="notification-content">
-                    <div class="notification-text"><strong>Entrega Matemáticas</strong> — Álgebra Lineal</div>
-                    <div class="notification-time">11 de mayo, 2026</div>
-                  </div>
-                </div>
-                <div class="notification-item">
-                  <div class="notification-icon" style="background: var(--secondary-light); color: var(--secondary);">🎓</div>
-                  <div class="notification-content">
-                    <div class="notification-text"><strong>Junta de Padres</strong> — 3° Primaria A</div>
-                    <div class="notification-time">13 de mayo, 2026 · 16:00</div>
-                  </div>
-                </div>
-                <div class="notification-item">
-                  <div class="notification-icon" style="background: #eef2ff; color: #4f46e5;">📚</div>
-                  <div class="notification-content">
-                    <div class="notification-text"><strong>Examen Historia</strong> — Revolución Mexicana</div>
-                    <div class="notification-time">15 de mayo, 2026 · 09:00</div>
-                  </div>
-                </div>
-                <div class="notification-item">
-                  <div class="notification-icon" style="background: var(--warning-light); color: #d97706;">🔬</div>
-                  <div class="notification-content">
-                    <div class="notification-text"><strong>Proyecto Ciencias</strong> — Proyecto Final</div>
-                    <div class="notification-time">21 de mayo, 2026</div>
-                  </div>
-                </div>
-                <div class="notification-item">
-                  <div class="notification-icon" style="background: var(--danger-light); color: var(--danger);">📋</div>
-                  <div class="notification-content">
-                    <div class="notification-text"><strong>Fin de Mes</strong> — Cierre de calificaciones</div>
-                    <div class="notification-time">29 de mayo, 2026</div>
-                  </div>
-                </div>
+              <div class="notification-list" id="upcomingEvents">
+                <div class="text-small text-muted" style="padding: 12px; text-align: center;">Cargando eventos...</div>
               </div>
             </div>
           </div>
 
-          <!-- Leyenda -->
           <div class="card">
             <div class="card-header"><h3 class="card-title">Leyenda</h3></div>
             <div class="card-body">
@@ -194,6 +98,385 @@
       </div>
     </main>
   </div>
+
+  <!-- Modal Crear Evento -->
+  <div class="modal-overlay" id="modalCrearEvento">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Agregar Evento</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="eventoForm">
+          <div class="form-group">
+            <label class="form-label" for="evTitulo">Título</label>
+            <input class="form-input" type="text" id="evTitulo" placeholder="Título del evento" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="evDescripcion">Descripción</label>
+            <textarea class="form-input" id="evDescripcion" placeholder="Descripción del evento" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="evTipo">Tipo</label>
+            <select class="form-input" id="evTipo" required>
+              <option value="EVENTO_ESCOLAR">Evento Escolar</option>
+              <option value="EXAMEN">Examen</option>
+              <option value="PROYECTO">Proyecto</option>
+              <option value="FECHA_IMPORTANTE">Fecha Importante</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="evFecha">Fecha</label>
+            <input class="form-input" type="date" id="evFecha" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="evHora">Hora <span class="text-small text-muted">(opcional)</span></label>
+            <input class="form-input" type="time" id="evHora" />
+          </div>
+          <div id="eventoError" class="alert alert-error" style="display: none; margin-bottom: 12px;"></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary modal-close">Cancelar</button>
+        <button class="btn btn-primary" id="guardarEventoBtn">Guardar Evento</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Confirmar Eliminar Evento -->
+  <div class="modal-overlay" id="modalEliminarEvento">
+    <div class="modal" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Eliminar Evento</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="eliminarEventoTexto">¿Estás seguro de eliminar este evento?</p>
+        <div id="eventoDeleteError" class="alert alert-error" style="display: none; margin-bottom: 12px;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary modal-close">Cancelar</button>
+        <button class="btn btn-danger" id="confirmarEliminarBtn">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="assets/js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      /* ----- State ----- */
+      const today = new Date()
+      let currentMonth = today.getMonth()
+      let currentYear = today.getFullYear()
+      let currentEvents = []
+      let deletingEventId = null
+
+      const MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+      const TYPE_COLORS = { EVENTO_ESCOLAR: 'event-green', EXAMEN: 'event-purple', PROYECTO: 'event-yellow', FECHA_IMPORTANTE: 'event-red' }
+      const TYPE_LABELS = { EVENTO_ESCOLAR: '📅', EXAMEN: '📚', PROYECTO: '📝', FECHA_IMPORTANTE: '⚠️' }
+
+      const sessionData = JSON.parse(localStorage.getItem('session_usuario') || '{}')
+      const isAdmin = sessionData.rol === 'ADMIN'
+
+      /* ----- Elements ----- */
+      const calendarGrid = document.getElementById('calendarGrid')
+      const calendarTitle = document.getElementById('calendarTitle')
+      const prevMonthBtn = document.getElementById('prevMonthBtn')
+      const nextMonthBtn = document.getElementById('nextMonthBtn')
+      const todayBtn = document.getElementById('todayBtn')
+      const upcomingEvents = document.getElementById('upcomingEvents')
+      const calendarActions = document.getElementById('calendarActions')
+
+      const modalCrear = document.getElementById('modalCrearEvento')
+      const modalEliminar = document.getElementById('modalEliminarEvento')
+      const eventoForm = document.getElementById('eventoForm')
+      const evTitulo = document.getElementById('evTitulo')
+      const evDescripcion = document.getElementById('evDescripcion')
+      const evTipo = document.getElementById('evTipo')
+      const evFecha = document.getElementById('evFecha')
+      const evHora = document.getElementById('evHora')
+      const eventoError = document.getElementById('eventoError')
+      const guardarEventoBtn = document.getElementById('guardarEventoBtn')
+      const eliminarEventoTexto = document.getElementById('eliminarEventoTexto')
+      const eventoDeleteError = document.getElementById('eventoDeleteError')
+      const confirmarEliminarBtn = document.getElementById('confirmarEliminarBtn')
+
+      /* ----- Show create button only for ADMIN ----- */
+      if (isAdmin) {
+        const btn = document.createElement('button')
+        btn.className = 'btn btn-primary btn-sm'
+        btn.textContent = '+ Agregar Evento'
+        btn.addEventListener('click', openCreateModal)
+        calendarActions.appendChild(btn)
+      }
+
+      /* ----- Event type -> color mapping ----- */
+      function getColorForType(tipo) {
+        return TYPE_COLORS[tipo] || 'event-blue'
+      }
+
+      /* ----- Format date ----- */
+      function formatDate(dateStr) {
+        const d = new Date(dateStr + 'T00:00:00')
+        return d.getDate() + ' de ' + MONTHS[d.getMonth()] + ', ' + d.getFullYear()
+      }
+
+      function formatDateShort(dateStr) {
+        const d = new Date(dateStr + 'T00:00:00')
+        return d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear()
+      }
+
+      /* ----- Load events ----- */
+      async function loadEvents() {
+        try {
+          currentEvents = await obtenerEventos(currentMonth + 1, currentYear)
+          renderCalendar()
+          renderUpcomingEvents()
+        } catch (err) {
+          console.error('[Calendar] Error loading events:', err)
+          currentEvents = []
+          renderCalendar()
+          renderUpcomingEvents()
+        }
+      }
+
+      /* ----- Render calendar ----- */
+      function renderCalendar() {
+        calendarTitle.textContent = MONTHS[currentMonth] + ' ' + currentYear
+
+        const firstDay = new Date(currentYear, currentMonth, 1)
+        const lastDay = new Date(currentYear, currentMonth + 1, 0)
+        const daysInMonth = lastDay.getDate()
+        const startDayOfWeek = firstDay.getDay()
+
+        const prevLastDay = new Date(currentYear, currentMonth, 0).getDate()
+
+        const todayDate = today.getDate()
+        const todayMonth = today.getMonth()
+        const todayYear = today.getFullYear()
+
+        let html = ''
+        const weekdays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+        weekdays.forEach(function (wd) {
+          html += '<div class="calendar-weekday">' + wd + '</div>'
+        })
+
+        // Previous month days
+        for (let i = startDayOfWeek - 1; i >= 0; i--) {
+          html += '<div class="calendar-day other-month"><span class="day-number">' + (prevLastDay - i) + '</span></div>'
+        }
+
+        // Current month days
+        for (let d = 1; d <= daysInMonth; d++) {
+          const isToday = (d === todayDate && currentMonth === todayMonth && currentYear === todayYear)
+          const dateStr = currentYear + '-' + String(currentMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0')
+          const dayEvents = currentEvents.filter(function (ev) { return ev.fecha === dateStr })
+
+          html += '<div class="calendar-day' + (isToday ? ' today' : '') + '" data-date="' + dateStr + '">'
+          html += '<span class="day-number">' + d + '</span>'
+          dayEvents.forEach(function (ev) {
+            const colorClass = ev.color || getColorForType(ev.tipo)
+            const icon = TYPE_LABELS[ev.tipo] || '📌'
+            html += '<div class="calendar-event ' + colorClass + '" data-evento-id="' + ev.id_evento + '" data-evento-titulo="' + escapeHtml(ev.titulo) + '">' + icon + ' ' + escapeHtml(ev.titulo) + '</div>'
+          })
+          html += '</div>'
+        }
+
+        // Next month days to fill the last row
+        const totalCells = startDayOfWeek + daysInMonth
+        const remaining = (7 - (totalCells % 7)) % 7
+        for (let i = 1; i <= remaining; i++) {
+          html += '<div class="calendar-day other-month"><span class="day-number">' + i + '</span></div>'
+        }
+
+        calendarGrid.innerHTML = html
+
+        // Attach click events to event pills for delete
+        calendarGrid.querySelectorAll('.calendar-event').forEach(function (el) {
+          el.addEventListener('click', function (e) {
+            e.stopPropagation()
+            const id = parseInt(this.getAttribute('data-evento-id'))
+            const titulo = this.getAttribute('data-evento-titulo')
+            if (isAdmin && id) {
+              openDeleteModal(id, titulo)
+            }
+          })
+        })
+      }
+
+      function escapeHtml(str) {
+        if (!str) return ''
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+      }
+
+      /* ----- Render upcoming events ----- */
+      function renderUpcomingEvents() {
+        const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0')
+
+        const upcoming = currentEvents
+          .filter(function (ev) { return ev.fecha >= todayStr })
+          .sort(function (a, b) { return a.fecha.localeCompare(b.fecha) })
+          .slice(0, 5)
+
+        if (upcoming.length === 0) {
+          upcomingEvents.innerHTML = '<div class="text-small text-muted" style="padding: 12px; text-align: center;">No hay eventos próximos</div>'
+          return
+        }
+
+        let html = ''
+        upcoming.forEach(function (ev) {
+          const icon = TYPE_LABELS[ev.tipo] || '📌'
+          const colorMap = { 'event-green': 'var(--secondary)', 'event-purple': '#7c3aed', 'event-yellow': '#d97706', 'event-red': 'var(--danger)', 'event-blue': 'var(--primary)' }
+          const bgColor = colorMap[ev.color] || 'var(--primary)'
+          const timeStr = ev.hora ? ' · ' + ev.hora.slice(0, 5) : ''
+
+          html += '<div class="notification-item">'
+          html += '<div class="notification-icon" style="background: ' + bgColor + '20; color: ' + bgColor + ';">' + icon + '</div>'
+          html += '<div class="notification-content">'
+          html += '<div class="notification-text"><strong>' + escapeHtml(ev.titulo) + '</strong>' + (ev.descripcion ? ' — ' + escapeHtml(ev.descripcion) : '') + '</div>'
+          html += '<div class="notification-time">' + formatDate(ev.fecha) + timeStr + '</div>'
+          html += '</div></div>'
+        })
+        upcomingEvents.innerHTML = html
+      }
+
+      /* ----- Navigation ----- */
+      prevMonthBtn.addEventListener('click', function () {
+        currentMonth--
+        if (currentMonth < 0) { currentMonth = 11; currentYear-- }
+        loadEvents()
+      })
+
+      nextMonthBtn.addEventListener('click', function () {
+        currentMonth++
+        if (currentMonth > 11) { currentMonth = 0; currentYear++ }
+        loadEvents()
+      })
+
+      todayBtn.addEventListener('click', function () {
+        currentMonth = today.getMonth()
+        currentYear = today.getFullYear()
+        loadEvents()
+      })
+
+      /* ----- Create modal ----- */
+      function openCreateModal() {
+        eventoError.style.display = 'none'
+        eventoForm.reset()
+        evFecha.value = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0')
+        evTipo.value = 'EVENTO_ESCOLAR'
+        modalCrear.classList.add('show')
+        document.body.style.overflow = 'hidden'
+      }
+
+      document.querySelectorAll('#modalCrearEvento .modal-close').forEach(function (el) {
+        el.addEventListener('click', function () {
+          modalCrear.classList.remove('show')
+          document.body.style.overflow = ''
+        })
+      })
+
+      guardarEventoBtn.addEventListener('click', async function () {
+        eventoError.style.display = 'none'
+
+        const titulo = evTitulo.value.trim()
+        if (!titulo) {
+          eventoError.textContent = 'El título es obligatorio'
+          eventoError.style.display = 'block'
+          return
+        }
+
+        const tipo = evTipo.value
+        const fecha = evFecha.value
+        if (!fecha) {
+          eventoError.textContent = 'La fecha es obligatoria'
+          eventoError.style.display = 'block'
+          return
+        }
+
+        guardarEventoBtn.disabled = true
+        guardarEventoBtn.textContent = 'Guardando...'
+
+        try {
+          const color = getColorForType(tipo)
+          const result = await crearEvento({
+            titulo: titulo,
+            descripcion: evDescripcion.value.trim() || null,
+            tipo: tipo,
+            fecha: fecha,
+            hora: evHora.value || null,
+            color: color,
+            idCreador: sessionData.id_usuario
+          })
+
+          if (result.success) {
+            modalCrear.classList.remove('show')
+            document.body.style.overflow = ''
+            showToast('Evento creado exitosamente')
+            await loadEvents()
+          } else {
+            eventoError.textContent = result.error || 'Error al crear el evento'
+            eventoError.style.display = 'block'
+          }
+        } catch (err) {
+          console.error('[Calendar] Error creating event:', err)
+          eventoError.textContent = err.message || 'Error de conexión con el servidor'
+          eventoError.style.display = 'block'
+        } finally {
+          guardarEventoBtn.disabled = false
+          guardarEventoBtn.textContent = 'Guardar Evento'
+        }
+      })
+
+      /* ----- Delete modal ----- */
+      function openDeleteModal(eventoId, titulo) {
+        deletingEventId = eventoId
+        eventoDeleteError.style.display = 'none'
+        eliminarEventoTexto.textContent = '¿Estás seguro de eliminar el evento "' + titulo + '"?'
+        modalEliminar.classList.add('show')
+        document.body.style.overflow = 'hidden'
+      }
+
+      document.querySelectorAll('#modalEliminarEvento .modal-close').forEach(function (el) {
+        el.addEventListener('click', function () {
+          modalEliminar.classList.remove('show')
+          document.body.style.overflow = ''
+          deletingEventId = null
+        })
+      })
+
+      confirmarEliminarBtn.addEventListener('click', async function () {
+        if (!deletingEventId) return
+
+        eventoDeleteError.style.display = 'none'
+        confirmarEliminarBtn.disabled = true
+        confirmarEliminarBtn.textContent = 'Eliminando...'
+
+        try {
+          const result = await eliminarEvento(deletingEventId)
+          if (result.success) {
+            modalEliminar.classList.remove('show')
+            document.body.style.overflow = ''
+            showToast('Evento eliminado exitosamente')
+            deletingEventId = null
+            await loadEvents()
+          } else {
+            eventoDeleteError.textContent = result.error || 'Error al eliminar el evento'
+            eventoDeleteError.style.display = 'block'
+          }
+        } catch (err) {
+          console.error('[Calendar] Error deleting event:', err)
+          eventoDeleteError.textContent = err.message || 'Error de conexión con el servidor'
+          eventoDeleteError.style.display = 'block'
+        } finally {
+          confirmarEliminarBtn.disabled = false
+          confirmarEliminarBtn.textContent = 'Eliminar'
+        }
+      })
+
+      /* ----- Initial load ----- */
+      loadEvents()
+    })
+  </script>
 </body>
 </html>

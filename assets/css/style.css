@@ -1652,24 +1652,6 @@ input, select, textarea {
   box-shadow: var(--shadow-lg);
 }
 
-.login-footer {
-  text-align: center;
-  margin-top: 24px;
-  font-size: 13px;
-  color: var(--text-light);
-}
-
-.login-tabs {
-  margin-bottom: 28px;
-}
-
-.login-tabs .tab-item {
-  flex: 1;
-  text-align: center;
-  font-size: 15px;
-  padding: 14px 20px;
-}
-
 .login-right {
   flex: 1;
   background: linear-gradient(135deg, var(--primary) 0%, #0d47a1 100%);
@@ -1992,8 +1974,38 @@ input, select, textarea {
   .sidebar-toggle {
     left: calc(var(--sidebar-collapsed) + 12px);
   }
+}
 
-  .login-right {
+.login-tabs {
+  margin-bottom: 28px;
+}
+
+.login-tabs .tab-item {
+  flex: 1;
+  text-align: center;
+  font-size: 15px;
+  padding: 14px 20px;
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.login-footer a {
+  color: var(--primary);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.login-footer a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+.login-right {
     display: none;
   }
   .login-left {

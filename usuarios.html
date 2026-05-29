@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Usuarios — Sistema de Gestión Educativa</title>
   <link rel="stylesheet" href="assets/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase.js"></script>
 </head>
 <body>
   <div class="app-layout">
@@ -29,7 +31,7 @@
         </div>
         <div class="nav-section"><p class="nav-label">Sistema</p><a class="nav-item" data-page="configuracion.html" href="configuracion.html"><span class="nav-icon">⚙️</span><span class="nav-text">Configuración</span></a></div>
       </nav>
-      <div class="sidebar-footer"><a class="nav-item" href="index.html"><span class="nav-icon">🚪</span><span class="nav-text">Cerrar Sesión</span></a></div>
+      <div class="sidebar-footer"><a class="nav-item" href="#" data-logout><span class="nav-icon">🚪</span><span class="nav-text">Cerrar Sesión</span></a></div>
     </aside>
 
     <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar"><span class="toggle-icon">◀</span></button>
@@ -46,7 +48,7 @@
             <div class="dropdown-menu">
               <div class="dropdown-item" onclick="window.location.href='configuracion.html'">⚙️ Configuración</div>
               <div class="dropdown-divider"></div>
-              <div class="dropdown-item" onclick="window.location.href='index.html'">🚪 Cerrar Sesión</div>
+              <div class="dropdown-item" data-logout>🚪 Cerrar Sesión</div>
             </div>
           </div>
           <div class="navbar-user">
@@ -76,7 +78,7 @@
           <div class="filter-group">
             <select class="form-select" style="width: auto; min-width: 140px;">
               <option>Todos los roles</option>
-              <option>Administrador</option>
+              <option>Admin</option>
               <option>Docente</option>
               <option>Padre</option>
               <option>Alumno</option>
@@ -104,84 +106,17 @@
                   <th style="text-align: center;">Acciones</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td><strong>Admin Principal</strong></td>
-                  <td>admin@institucion.edu</td>
-                  <td><span class="status status-active"><span class="status-dot"></span>Admin</span></td>
-                  <td><span class="status status-active"><span class="status-dot"></span>Activo</span></td>
-                  <td>Hoy 09:00</td>
-                  <td style="text-align: center;">
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver">👁️</button>
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="edit" title="Editar">✏️</button>
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="delete" title="Eliminar">🗑️</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td><strong>María García López</strong></td>
-                  <td>maria.garcia@institucion.edu</td>
-                  <td><span class="status status-delivered"><span class="status-dot"></span>Docente</span></td>
-                  <td><span class="status status-active"><span class="status-dot"></span>Activo</span></td>
-                  <td>Hoy 08:30</td>
-                  <td style="text-align: center;">
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver">👁️</button>
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="edit" title="Editar">✏️</button>
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="delete" title="Eliminar">🗑️</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td><strong>Carlos Hernández Ruiz</strong></td>
-                  <td>carlos.hernandez@institucion.edu</td>
-                  <td><span class="status status-delivered"><span class="status-dot"></span>Docente</span></td>
-                  <td><span class="status status-active"><span class="status-dot"></span>Activo</span></td>
-                  <td>Ayer 16:45</td>
-                  <td style="text-align: center;">
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver">👁️</button>
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="edit" title="Editar">✏️</button>
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="delete" title="Eliminar">🗑️</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td><strong>Ana Martínez Torres</strong></td>
-                  <td>ana.martinez@email.com</td>
-                  <td><span class="status status-active"><span class="status-dot"></span>Padre</span></td>
-                  <td><span class="status status-active"><span class="status-dot"></span>Activo</span></td>
-                  <td>Ayer 14:20</td>
-                  <td style="text-align: center;">
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver">👁️</button>
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="edit" title="Editar">✏️</button>
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="delete" title="Eliminar">🗑️</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td><strong>Pedro Sánchez Díaz</strong></td>
-                  <td>pedro.sanchez@email.com</td>
-                  <td><span class="status status-delivered"><span class="status-dot"></span>Alumno</span></td>
-                  <td><span class="status status-inactive"><span class="status-dot"></span>Inactivo</span></td>
-                  <td>Hace 3 días</td>
-                  <td style="text-align: center;">
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver">👁️</button>
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="edit" title="Editar">✏️</button>
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="delete" title="Eliminar">🗑️</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td><strong>Laura Díaz Flores</strong></td>
-                  <td>laura.diaz@email.com</td>
-                  <td><span class="status status-active"><span class="status-dot"></span>Padre</span></td>
-                  <td><span class="status status-active"><span class="status-dot"></span>Activo</span></td>
-                  <td>Hace 5 días</td>
-                  <td style="text-align: center;">
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver">👁️</button>
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="edit" title="Editar">✏️</button>
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="delete" title="Eliminar">🗑️</button>
+              <tbody id="userTableBody">
+                <tr id="loadingRow">
+                  <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                    Cargando usuarios...
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
           <div class="card-footer flex-between">
-            <span class="text-small text-muted">Mostrando 6 de 48 usuarios</span>
+            <span class="text-small text-muted" id="userCount">Cargando...</span>
             <div class="flex-gap">
               <button class="btn btn-secondary btn-sm">◀ Anterior</button>
               <button class="btn btn-primary btn-sm">Siguiente ▶</button>
@@ -192,52 +127,337 @@
     </main>
   </div>
 
-  <!-- Modal Agregar Usuario -->
-  <div class="modal-overlay" id="addUserModal">
+  <!-- Modal Formulario Usuario (Agregar / Editar) -->
+  <div class="modal-overlay" id="userFormModal">
     <div class="modal">
       <div class="modal-header">
-        <h3 class="modal-title">Agregar Nuevo Usuario</h3>
+        <h3 class="modal-title" id="formModalTitle">Agregar Nuevo Usuario</h3>
         <button class="modal-close">&times;</button>
       </div>
       <div class="modal-body">
+        <input type="hidden" id="editUserId" value="" />
         <div class="form-group">
-          <label class="form-label">Nombre Completo</label>
-          <input class="form-input" type="text" placeholder="Nombre del usuario" />
+          <label class="form-label">Nombre</label>
+          <input class="form-input" id="editNombre" type="text" placeholder="Nombre" required />
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Correo Electrónico</label>
-            <input class="form-input" type="email" placeholder="correo@ejemplo.com" />
+            <label class="form-label">Apellido Paterno</label>
+            <input class="form-input" id="editApellidoPaterno" type="text" placeholder="Apellido paterno" />
           </div>
           <div class="form-group">
-            <label class="form-label">Rol</label>
-            <select class="form-select">
-              <option>Seleccionar rol</option>
-              <option>Administrador</option>
-              <option>Docente</option>
-              <option>Padre</option>
-              <option>Alumno</option>
-            </select>
+            <label class="form-label">Apellido Materno</label>
+            <input class="form-input" id="editApellidoMaterno" type="text" placeholder="Apellido materno" />
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Contraseña</label>
-            <input class="form-input" type="password" placeholder="••••••••" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Confirmar Contraseña</label>
-            <input class="form-input" type="password" placeholder="••••••••" />
-          </div>
+        <div class="form-group">
+          <label class="form-label">Correo Electrónico</label>
+          <input class="form-input" id="editCorreo" type="email" placeholder="correo@ejemplo.com" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teléfono</label>
+          <input class="form-input" id="editTelefono" type="text" placeholder="+52 555 000 0000" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rol</label>
+          <select class="form-select" id="editRol">
+            <option value="">Seleccionar rol</option>
+            <option value="ADMIN">Administrador</option>
+            <option value="DOCENTE">Docente</option>
+            <option value="PADRE">Padre</option>
+            <option value="ALUMNO">Alumno</option>
+          </select>
         </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary modal-close">Cancelar</button>
-        <button class="btn btn-primary" data-toast="Usuario creado exitosamente">Guardar</button>
+        <button class="btn btn-primary" id="btnGuardarUsuario">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Confirmar Eliminación -->
+  <div class="modal-overlay" id="confirmDeleteModal">
+    <div class="modal" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Confirmar Eliminación</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="deleteUserId" value="" />
+        <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6;">
+          ¿Estás seguro de eliminar a <strong id="deleteUserName">---</strong>?
+          Esta acción no se puede deshacer.
+        </p>
+      </div>
+      <div class="modal-footer" style="justify-content: space-between;">
+        <button class="btn btn-secondary modal-close">Cancelar</button>
+        <button class="btn btn-danger" id="btnConfirmarEliminar">Eliminar</button>
       </div>
     </div>
   </div>
 
   <script src="assets/js/main.js"></script>
+  <script>
+    ;(function () {
+      var tbody = document.getElementById('userTableBody')
+      if (!tbody) return
+
+      var usuariosCache = []
+      var editandoId = null
+
+      var rolesLabel = { ADMIN: 'Administrador', DOCENTE: 'Docente', PADRE: 'Padre', ALUMNO: 'Alumno' }
+      var rolesClass = { ADMIN: 'status-active', DOCENTE: 'status-delivered', PADRE: 'status-active', ALUMNO: 'status-inactive' }
+
+      function formatearFecha(iso) {
+        if (!iso) return 'Nunca'
+        var d = new Date(iso)
+        var hoy = new Date()
+        var ayer = new Date(hoy)
+        ayer.setDate(ayer.getDate() - 1)
+        var opciones = { hour: '2-digit', minute: '2-digit' }
+        if (d.toDateString() === hoy.toDateString()) return 'Hoy ' + d.toLocaleTimeString('es-MX', opciones)
+        if (d.toDateString() === ayer.toDateString()) return 'Ayer ' + d.toLocaleTimeString('es-MX', opciones)
+        return d.toLocaleDateString('es-MX') + ' ' + d.toLocaleTimeString('es-MX', opciones)
+      }
+
+      function obtenerNombreCompleto(u) {
+        return (u.nombre || '') + ' ' + (u.apellido_paterno || '') + (u.apellido_materno ? ' ' + u.apellido_materno : '')
+      }
+
+      function cargarUsuarios() {
+        obtenerUsuarios().then(function (usuarios) {
+          usuariosCache = usuarios || []
+          renderizarUsuarios(usuariosCache)
+          aplicarFiltros()
+        }).catch(function (err) {
+          console.error('[Usuarios] Error al cargar:', err)
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">Error al cargar usuarios</td></tr>'
+        })
+      }
+
+      function renderizarUsuarios(usuarios) {
+        tbody.innerHTML = ''
+        if (!usuarios || usuarios.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">No hay usuarios registrados</td></tr>'
+          return
+        }
+        usuarios.forEach(function (u) {
+          var tr = document.createElement('tr')
+          var nombreCompleto = obtenerNombreCompleto(u)
+          var rolLabel = rolesLabel[u.rol] || u.rol
+          var rolClass = rolesClass[u.rol] || 'status-active'
+          tr.innerHTML =
+            '<td><strong>' + escapeHtml(nombreCompleto) + '</strong></td>' +
+            '<td>' + escapeHtml(u.correo || '') + '</td>' +
+            '<td><span class="status ' + rolClass + '"><span class="status-dot"></span>' + escapeHtml(rolLabel) + '</span></td>' +
+            '<td><span class="status status-active"><span class="status-dot"></span>Activo</span></td>' +
+            '<td>' + formatearFecha(u.ultimo_acceso) + '</td>' +
+            '<td style="text-align:center;">' +
+              '<button class="btn btn-secondary btn-icon btn-sm" data-view-id="' + u.id_usuario + '" title="Ver">👁️</button>' +
+              '<button class="btn btn-secondary btn-icon btn-sm" data-edit-id="' + u.id_usuario + '" title="Editar">✏️</button>' +
+              '<button class="btn btn-secondary btn-icon btn-sm" data-delete-id="' + u.id_usuario + '" title="Eliminar">🗑️</button>' +
+            '</td>'
+          tbody.appendChild(tr)
+        })
+        document.getElementById('userCount').textContent = 'Mostrando ' + usuarios.length + ' usuario' + (usuarios.length !== 1 ? 's' : '')
+      }
+
+      function escapeHtml(str) {
+        if (!str) return ''
+        var div = document.createElement('div')
+        div.appendChild(document.createTextNode(str))
+        return div.innerHTML
+      }
+
+      function aplicarFiltros() {
+        var q = document.querySelector('#usuariosPage .search-input-group input, .page-content .search-input-group input')
+        var filtroRol = document.querySelector('#usuariosPage select, .page-content select')
+        if (!filtroRol) filtroRol = document.querySelector('.search-bar select')
+        var rolSel = filtroRol
+        var query = q ? q.value.toLowerCase().trim() : ''
+        var rolFiltro = rolSel ? rolSel.value : 'Todos los roles'
+        var rows = tbody.querySelectorAll('tr')
+        var visibles = 0
+        rows.forEach(function (row) {
+          if (row.id === 'loadingRow') return
+          var texto = row.textContent.toLowerCase()
+          var coincideTexto = !query || texto.includes(query)
+          var coincideRol = rolFiltro === 'Todos los roles' || texto.includes(rolFiltro.toLowerCase())
+          if (coincideTexto && coincideRol) {
+            row.style.display = ''
+            visibles++
+          } else {
+            row.style.display = 'none'
+          }
+        })
+      }
+
+      // ---- FORM MODAL ----
+      var formModal = document.getElementById('userFormModal')
+      var formTitle = document.getElementById('formModalTitle')
+      var btnGuardar = document.getElementById('btnGuardarUsuario')
+
+      function abrirModalAgregar() {
+        editandoId = null
+        formTitle.textContent = 'Agregar Nuevo Usuario'
+        document.getElementById('editUserId').value = ''
+        document.getElementById('editNombre').value = ''
+        document.getElementById('editApellidoPaterno').value = ''
+        document.getElementById('editApellidoMaterno').value = ''
+        document.getElementById('editCorreo').value = ''
+        document.getElementById('editTelefono').value = ''
+        document.getElementById('editRol').value = ''
+        btnGuardar.textContent = 'Guardar'
+        formModal.classList.add('show')
+        document.body.style.overflow = 'hidden'
+      }
+
+      function abrirModalEditar(id) {
+        var u = null
+        for (var i = 0; i < usuariosCache.length; i++) {
+          if (usuariosCache[i].id_usuario === id) { u = usuariosCache[i]; break }
+        }
+        if (!u) { showToast('Usuario no encontrado'); return }
+
+        editandoId = id
+        formTitle.textContent = 'Editar Usuario'
+        document.getElementById('editUserId').value = id
+        document.getElementById('editNombre').value = u.nombre || ''
+        document.getElementById('editApellidoPaterno').value = u.apellido_paterno || ''
+        document.getElementById('editApellidoMaterno').value = u.apellido_materno || ''
+        document.getElementById('editCorreo').value = u.correo || ''
+        document.getElementById('editTelefono').value = u.telefono || ''
+        document.getElementById('editRol').value = u.rol || ''
+        btnGuardar.textContent = 'Actualizar'
+        formModal.classList.add('show')
+        document.body.style.overflow = 'hidden'
+      }
+
+      btnGuardar.addEventListener('click', function () {
+        var nombre = document.getElementById('editNombre').value.trim()
+        var correo = document.getElementById('editCorreo').value.trim()
+        var rol = document.getElementById('editRol').value
+
+        if (!nombre) { showToast('El nombre es obligatorio'); return }
+        if (!correo) { showToast('El correo es obligatorio'); return }
+        if (!rol) { showToast('Selecciona un rol'); return }
+
+        var datos = {
+          nombre: nombre,
+          apellidoPaterno: document.getElementById('editApellidoPaterno').value.trim(),
+          apellidoMaterno: document.getElementById('editApellidoMaterno').value.trim(),
+          correo: correo,
+          telefono: document.getElementById('editTelefono').value.trim(),
+          rol: rol
+        }
+
+        btnGuardar.disabled = true
+        btnGuardar.textContent = 'Guardando...'
+
+        var promesa
+        if (editandoId) {
+          promesa = actualizarUsuario(editandoId, datos)
+        } else {
+          var pass = prompt('Ingresa la contraseña para el nuevo usuario (mín. 6 caracteres):')
+          if (!pass || pass.length < 6) { btnGuardar.disabled = false; btnGuardar.textContent = 'Guardar'; showToast('Contraseña inválida (mín. 6 caracteres)'); return }
+          datos.contrasena = pass
+          promesa = registrarUsuario(datos)
+        }
+
+        promesa.then(function (res) {
+          if (res && res.success === false) { showToast(res.error || 'Error al guardar'); btnGuardar.disabled = false; btnGuardar.textContent = editandoId ? 'Actualizar' : 'Guardar'; return }
+          formModal.classList.remove('show')
+          document.body.style.overflow = ''
+          showToast(editandoId ? 'Usuario actualizado exitosamente' : 'Usuario creado exitosamente')
+          btnGuardar.disabled = false
+          btnGuardar.textContent = editandoId ? 'Actualizar' : 'Guardar'
+          cargarUsuarios()
+        }).catch(function (err) {
+          console.error('[Usuarios] Error al guardar:', err)
+          showToast('Error: ' + (err.message || 'desconocido'))
+          btnGuardar.disabled = false
+          btnGuardar.textContent = editandoId ? 'Actualizar' : 'Guardar'
+        })
+      })
+
+      // ---- DELETE MODAL ----
+      var deleteModal = document.getElementById('confirmDeleteModal')
+      var deleteUserName = document.getElementById('deleteUserName')
+      var btnConfirmarEliminar = document.getElementById('btnConfirmarEliminar')
+
+      function abrirModalEliminar(id) {
+        var u = null
+        for (var i = 0; i < usuariosCache.length; i++) {
+          if (usuariosCache[i].id_usuario === id) { u = usuariosCache[i]; break }
+        }
+        if (!u) { showToast('Usuario no encontrado'); return }
+        document.getElementById('deleteUserId').value = id
+        deleteUserName.textContent = obtenerNombreCompleto(u)
+        deleteModal.classList.add('show')
+        document.body.style.overflow = 'hidden'
+      }
+
+      btnConfirmarEliminar.addEventListener('click', function () {
+        var id = document.getElementById('deleteUserId').value
+        if (!id) return
+        btnConfirmarEliminar.disabled = true
+        btnConfirmarEliminar.textContent = 'Eliminando...'
+        eliminarUsuario(id).then(function (res) {
+          if (res && res.success === false) { showToast(res.error || 'Error al eliminar'); btnConfirmarEliminar.disabled = false; btnConfirmarEliminar.textContent = 'Eliminar'; return }
+          deleteModal.classList.remove('show')
+          document.body.style.overflow = ''
+          showToast('Usuario eliminado correctamente')
+          btnConfirmarEliminar.disabled = false
+          btnConfirmarEliminar.textContent = 'Eliminar'
+          cargarUsuarios()
+        }).catch(function (err) {
+          console.error('[Usuarios] Error al eliminar:', err)
+          showToast('Error: ' + (err.message || 'desconocido'))
+          btnConfirmarEliminar.disabled = false
+          btnConfirmarEliminar.textContent = 'Eliminar'
+        })
+      })
+
+      // ---- EVENT DELEGATION (clicks en botones dinámicos) ----
+      tbody.addEventListener('click', function (e) {
+        var btn = e.target.closest('button')
+        if (!btn) return
+        var id
+        if (btn.hasAttribute('data-edit-id')) {
+          id = btn.getAttribute('data-edit-id')
+          abrirModalEditar(id)
+        } else if (btn.hasAttribute('data-delete-id')) {
+          id = btn.getAttribute('data-delete-id')
+          abrirModalEliminar(id)
+        } else if (btn.hasAttribute('data-view-id')) {
+          showToast('Función de vista próximamente')
+        }
+      })
+
+      // ---- BOTÓN AGREGAR ----
+      document.querySelector('[data-action="add"]').addEventListener('click', function (e) {
+        e.preventDefault()
+        abrirModalAgregar()
+      })
+
+      // ---- SEARCH + FILTER ----
+      var inputs = document.querySelectorAll('.page-content .table-search, .search-bar input')
+      inputs.forEach(function (inp) {
+        inp.addEventListener('input', aplicarFiltros)
+      })
+      var selects = document.querySelectorAll('.search-bar select')
+      selects.forEach(function (sel) {
+        sel.addEventListener('change', function () {
+          document.querySelector('.search-bar .btn-secondary').addEventListener('click', aplicarFiltros)
+          aplicarFiltros()
+        })
+      })
+
+      // ---- LOAD ----
+      cargarUsuarios()
+      setInterval(cargarUsuarios, 30000)
+    })()
+  </script>
 </body>
 </html>
