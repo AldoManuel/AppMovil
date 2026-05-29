@@ -419,6 +419,234 @@ SET promedio = (
 );
 
 -- ==========================================================
+-- 17. FUNCIONES RPC PARA CRUD DE USUARIOS (Frontend)
+-- ==========================================================
+
+CREATE OR REPLACE FUNCTION obtener_usuarios()
+RETURNS JSON AS $$
+DECLARE
+  v_result JSON;
+BEGIN
+  SELECT json_agg(json_build_object(
+    'id_usuario', u.id_usuario,
+    'nombre', u.nombre,
+    'apellido_paterno', u.apellido_paterno,
+    'apellido_materno', u.apellido_materno,
+    'correo', u.correo,
+    'telefono', u.telefono,
+    'rol', u.rol,
+    'ultimo_acceso', u.ultimo_acceso,
+    'fecha_registro', u.fecha_registro
+  ) ORDER BY u.fecha_registro DESC)
+  INTO v_result
+  FROM public.usuario u
+  WHERE u.activo = true;
+
+  RETURN COALESCE(v_result, '[]'::json);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION actualizar_usuario(
+  p_id_usuario UUID,
+  p_nombre VARCHAR,
+  p_apellido_paterno VARCHAR,
+  p_apellido_materno VARCHAR,
+  p_correo VARCHAR,
+  p_telefono VARCHAR,
+  p_rol VARCHAR
+) RETURNS JSON AS $$
+DECLARE
+  v_existe BOOLEAN;
+BEGIN
+  SELECT EXISTS(SELECT 1 FROM public.usuario WHERE correo = p_correo AND id_usuario != p_id_usuario) INTO v_existe;
+  IF v_existe THEN
+    RETURN json_build_object('success', false, 'error', 'El correo ya está en uso por otro usuario');
+  END IF;
+
+  UPDATE public.usuario
+  SET nombre = p_nombre,
+      apellido_paterno = p_apellido_paterno,
+      apellido_materno = p_apellido_materno,
+      correo = p_correo,
+      telefono = p_telefono,
+      rol = p_rol
+  WHERE id_usuario = p_id_usuario;
+
+  RETURN json_build_object('success', true);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION eliminar_usuario(p_id_usuario UUID)
+RETURNS JSON AS $$
+BEGIN
+  UPDATE public.usuario SET activo = false WHERE id_usuario = p_id_usuario;
+  RETURN json_build_object('success', true);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION obtener_usuarios TO anon;
+GRANT EXECUTE ON FUNCTION actualizar_usuario TO anon;
+GRANT EXECUTE ON FUNCTION eliminar_usuario TO anon;
+
+-- ==========================================================
+-- 18. FUNCIONES RPC PARA REGISTRO DE PADRE CON HIJOS
+-- ==========================================================
+
+CREATE OR REPLACE FUNCTION registrar_padre_con_hijos(
+  p_nombre VARCHAR,
+  p_apellido_paterno VARCHAR,
+  p_apellido_materno VARCHAR,
+  p_correo VARCHAR,
+  p_telefono VARCHAR,
+  p_contrasena VARCHAR,
+  p_hijos JSON
+) RETURNS JSON AS $$
+DECLARE
+  v_id_padre UUID;
+  v_hijo JSON;
+  v_nombre_hijo VARCHAR;
+  v_ap_pat_hijo VARCHAR;
+  v_ap_mat_hijo VARCHAR;
+  v_grado_hijo VARCHAR;
+  v_grupo_hijo VARCHAR;
+  v_parentesco VARCHAR;
+  v_id_grado INTEGER;
+  v_id_grupo INTEGER;
+  v_id_alumno UUID;
+  v_correo_alumno VARCHAR;
+  v_existe_correo BOOLEAN;
+  v_counter INTEGER := 0;
+BEGIN
+  -- Verificar si el correo del padre ya existe
+  SELECT EXISTS(SELECT 1 FROM public.usuario WHERE correo = p_correo) INTO v_existe_correo;
+  IF v_existe_correo THEN
+    RETURN json_build_object('success', false, 'error', 'El correo ya está registrado');
+  END IF;
+
+  -- 1. Crear usuario padre
+  INSERT INTO public.usuario (nombre, apellido_paterno, apellido_materno, correo, telefono, rol, contrasena)
+  VALUES (p_nombre, p_apellido_paterno, p_apellido_materno, p_correo, p_telefono, 'PADRE', crypt(p_contrasena, gen_salt('bf')))
+  RETURNING id_usuario INTO v_id_padre;
+
+  -- 2. Crear registro en tabla padre
+  INSERT INTO public.padre (id_padre) VALUES (v_id_padre);
+
+  -- 3. Procesar cada hijo
+  FOR v_hijo IN SELECT * FROM json_array_elements(p_hijos)
+  LOOP
+    v_nombre_hijo := v_hijo->>'nombre';
+    v_ap_pat_hijo := v_hijo->>'apellidoPaterno';
+    v_ap_mat_hijo := v_hijo->>'apellidoMaterno';
+    v_grado_hijo := v_hijo->>'grado';
+    v_grupo_hijo := v_hijo->>'grupo';
+    v_parentesco := v_hijo->>'parentesco';
+
+    -- Validar parentesco
+    IF v_parentesco NOT IN ('MADRE', 'PADRE', 'TUTOR') THEN
+      v_parentesco := 'TUTOR';
+    END IF;
+
+    -- Buscar id_grado por nombre
+    SELECT id_grado INTO v_id_grado FROM public.grado WHERE nombre = v_grado_hijo;
+    IF v_id_grado IS NULL THEN
+      SELECT id_grado INTO v_id_grado FROM public.grado ORDER BY nivel LIMIT 1;
+    END IF;
+
+    -- Buscar id_grupo por nombre
+    SELECT id_grupo INTO v_id_grupo FROM public.grupo WHERE nombre = v_grupo_hijo;
+    IF v_id_grupo IS NULL THEN
+      SELECT id_grupo INTO v_id_grupo FROM public.grupo LIMIT 1;
+    END IF;
+
+    -- Generar correo único para el alumno
+    v_counter := v_counter + 1;
+    v_correo_alumno := LOWER(REGEXP_REPLACE(v_nombre_hijo || '.' || COALESCE(v_ap_pat_hijo, 'alumno') || v_counter || '@alumno.temp', '[^a-z0-9@.]', '', 'g'));
+
+    -- Crear usuario alumno
+    INSERT INTO public.usuario (nombre, apellido_paterno, apellido_materno, correo, rol, activo, contrasena)
+    VALUES (v_nombre_hijo, v_ap_pat_hijo, v_ap_mat_hijo, v_correo_alumno, 'ALUMNO', true, NULL)
+    RETURNING id_usuario INTO v_id_alumno;
+
+    -- Crear registro en tabla alumno
+    INSERT INTO public.alumno (id_alumno, id_grupo)
+    VALUES (v_id_alumno, v_id_grupo);
+
+    -- Crear relación alumno-padre
+    INSERT INTO public.alumno_padre (id_alumno, id_padre, parentesco)
+    VALUES (v_id_alumno, v_id_padre, v_parentesco);
+
+  END LOOP;
+
+  RETURN json_build_object('success', true, 'id_usuario', v_id_padre);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==========================================================
+-- 19. FUNCIONES RPC PARA CRUD DE EVENTOS (Calendario)
+-- ==========================================================
+
+CREATE OR REPLACE FUNCTION obtener_eventos(p_mes INTEGER, p_anio INTEGER)
+RETURNS JSON AS $$
+DECLARE
+  v_result JSON;
+BEGIN
+  SELECT json_agg(json_build_object(
+    'id_evento', e.id_evento,
+    'titulo', e.titulo,
+    'descripcion', e.descripcion,
+    'tipo', e.tipo,
+    'fecha', e.fecha,
+    'hora', e.hora,
+    'color', e.color,
+    'id_creador', e.id_creador
+  ) ORDER BY e.fecha, e.hora)
+  INTO v_result
+  FROM public.evento e
+  WHERE EXTRACT(MONTH FROM e.fecha) = p_mes
+    AND EXTRACT(YEAR FROM e.fecha) = p_anio;
+
+  RETURN COALESCE(v_result, '[]'::json);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION crear_evento(
+  p_titulo VARCHAR,
+  p_descripcion TEXT,
+  p_tipo VARCHAR,
+  p_fecha DATE,
+  p_hora TIME,
+  p_color VARCHAR,
+  p_id_creador UUID
+) RETURNS JSON AS $$
+DECLARE
+  v_id_evento INTEGER;
+BEGIN
+  IF p_tipo NOT IN ('EVENTO_ESCOLAR', 'EXAMEN', 'PROYECTO', 'FECHA_IMPORTANTE') THEN
+    RETURN json_build_object('success', false, 'error', 'Tipo de evento inválido');
+  END IF;
+
+  INSERT INTO public.evento (titulo, descripcion, tipo, fecha, hora, color, id_creador)
+  VALUES (p_titulo, p_descripcion, p_tipo, p_fecha, p_hora, p_color, p_id_creador)
+  RETURNING id_evento INTO v_id_evento;
+
+  RETURN json_build_object('success', true, 'id_evento', v_id_evento);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION eliminar_evento(p_id_evento INTEGER)
+RETURNS JSON AS $$
+BEGIN
+  DELETE FROM public.evento WHERE id_evento = p_id_evento;
+  RETURN json_build_object('success', true);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION registrar_padre_con_hijos TO anon;
+GRANT EXECUTE ON FUNCTION obtener_eventos TO anon;
+GRANT EXECUTE ON FUNCTION crear_evento TO anon;
+GRANT EXECUTE ON FUNCTION eliminar_evento TO anon;
+
+-- ==========================================================
 -- FIN DEL SCRIPT
 -- ==========================================================
 -- CREDENCIALES DE PRUEBA:

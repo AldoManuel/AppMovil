@@ -125,7 +125,8 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   modalCloses.forEach(function (closeEl) {
-    closeEl.addEventListener('click', function () {
+    closeEl.addEventListener('click', function (e) {
+      if (closeEl.classList.contains('modal-overlay') && e.target !== closeEl) return;
       const modal = this.closest('.modal-overlay');
       if (modal) {
         modal.classList.remove('show');
@@ -304,35 +305,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }, 3000);
   }
 
-  /* ==========================================================
-     TOOLBAR DE ACCIONES (Editar, Eliminar, Ver)
-     ========================================================== */
-  document.querySelectorAll('[data-action="edit"], [data-action="delete"], [data-action="view"]').forEach(function (btn) {
-    btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      const action = this.getAttribute('data-action');
-      const actionLabels = {
-        edit: 'Editar',
-        delete: 'Eliminar',
-        view: 'Ver'
-      };
-      showToast('Acción "' + (actionLabels[action] || action) + '" simulada correctamente');
-    });
-  });
-
-  /* ==========================================================
-     BOTÓN AGREGAR (Simulado)
-     ========================================================== */
-  document.querySelectorAll('[data-action="add"]').forEach(function (btn) {
-    btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      showToast('Formulario de registro abierto (simulado)');
-      const modalId = this.getAttribute('data-modal');
-      if (modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) modal.classList.add('show');
-      }
-    });
-  });
+  window.showToast = showToast;
 
 });

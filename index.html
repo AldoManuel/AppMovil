@@ -74,6 +74,16 @@
             <label class="form-label" for="regPassword">Contraseña</label>
             <input class="form-input" type="password" id="regPassword" placeholder="••••••••" required />
           </div>
+
+          <!-- Sección de hijos (visible solo para rol PADRE) -->
+          <div id="hijosSection" style="display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color, #e5e7eb);">
+            <p style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary, #1f2937);">
+              👶 Información del/los Hijos
+            </p>
+            <div id="hijosContainer"></div>
+            <button type="button" class="btn btn-secondary btn-sm" id="agregarHijoBtn" style="margin-top: 8px;">+ Agregar Hijo</button>
+          </div>
+
           <div id="registerError" class="alert alert-error" style="display: none; margin-bottom: 12px;"></div>
           <button class="btn btn-primary btn-lg w-100" type="submit" id="registerBtn">Crear Cuenta</button>
         </form>
@@ -96,6 +106,86 @@
   <script src="assets/js/main.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
+
+      /* ----- Children management for PADRE role ----- */
+      const regRol = document.getElementById('regRol')
+      const hijosSection = document.getElementById('hijosSection')
+      const hijosContainer = document.getElementById('hijosContainer')
+      const agregarHijoBtn = document.getElementById('agregarHijoBtn')
+      let hijoCount = 0
+
+      function crearHijoEntry() {
+        hijoCount++
+        const index = hijoCount
+        const div = document.createElement('div')
+        div.className = 'hijo-entry'
+        div.style.cssText = 'background: var(--bg-secondary, #f9fafb); border-radius: 8px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--border-light, #e5e7eb); position: relative;'
+        div.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 13px; font-weight: 600; color: var(--text-secondary, #6b7280);">Hijo #${index}</span>
+            <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 12px;" data-remove-hijo>✕</button>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div class="form-group" style="margin-bottom: 4px;">
+              <label class="form-label" style="font-size: 12px;">Nombre</label>
+              <input class="form-input" type="text" style="padding: 6px 10px; font-size: 13px;" data-hijo-nombre placeholder="Nombre del hijo" required />
+            </div>
+            <div class="form-group" style="margin-bottom: 4px;">
+              <label class="form-label" style="font-size: 12px;">Apellido Paterno</label>
+              <input class="form-input" type="text" style="padding: 6px 10px; font-size: 13px;" data-hijo-ap-pat placeholder="Apellido paterno" />
+            </div>
+            <div class="form-group" style="margin-bottom: 4px;">
+              <label class="form-label" style="font-size: 12px;">Apellido Materno</label>
+              <input class="form-input" type="text" style="padding: 6px 10px; font-size: 13px;" data-hijo-ap-mat placeholder="Apellido materno" />
+            </div>
+            <div class="form-group" style="margin-bottom: 4px;">
+              <label class="form-label" style="font-size: 12px;">Parentesco</label>
+              <select class="form-input" style="padding: 6px 10px; font-size: 13px;" data-hijo-parentesco required>
+                <option value="MADRE">Madre</option>
+                <option value="PADRE">Padre</option>
+                <option value="TUTOR">Tutor</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 4px;">
+              <label class="form-label" style="font-size: 12px;">Grado</label>
+              <select class="form-input" style="padding: 6px 10px; font-size: 13px;" data-hijo-grado required>
+                <option value="">Seleccionar</option>
+                <option value="1° Primaria">1° Primaria</option>
+                <option value="2° Primaria">2° Primaria</option>
+                <option value="3° Primaria">3° Primaria</option>
+                <option value="4° Primaria">4° Primaria</option>
+                <option value="5° Primaria">5° Primaria</option>
+                <option value="6° Primaria">6° Primaria</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 4px;">
+              <label class="form-label" style="font-size: 12px;">Grupo</label>
+              <select class="form-input" style="padding: 6px 10px; font-size: 13px;" data-hijo-grupo required>
+                <option value="">Seleccionar</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+              </select>
+            </div>
+          </div>
+        `
+        div.querySelector('[data-remove-hijo]').addEventListener('click', function () {
+          div.remove()
+        })
+        return div
+      }
+
+      regRol.addEventListener('change', function () {
+        if (this.value === 'PADRE') {
+          hijosSection.style.display = 'block'
+        } else {
+          hijosSection.style.display = 'none'
+        }
+      })
+
+      agregarHijoBtn.addEventListener('click', function () {
+        hijosContainer.appendChild(crearHijoEntry())
+      })
 
       document.getElementById('loginForm').addEventListener('submit', async function (e) {
         e.preventDefault()
@@ -154,26 +244,50 @@
         btn.textContent = 'Registrando...'
         errorEl.style.display = 'none'
 
-        const datos = {
+        const rol = document.getElementById('regRol').value
+        const datosBase = {
           nombre: document.getElementById('regNombre').value.trim(),
           apellidoPaterno: document.getElementById('regApPat').value.trim(),
           apellidoMaterno: document.getElementById('regApMat').value.trim(),
           correo: document.getElementById('regCorreo').value.trim(),
           telefono: document.getElementById('regTelefono').value.trim(),
-          rol: document.getElementById('regRol').value,
+          rol: rol,
           contrasena: password
         }
 
         try {
-          const result = await registrarUsuario(datos)
+          let result
+
+          if (rol === 'PADRE') {
+            // Collect children data
+            const hijoEntries = hijosContainer.querySelectorAll('.hijo-entry')
+            const hijos = []
+            hijoEntries.forEach(function (entry) {
+              const nombre = entry.querySelector('[data-hijo-nombre]').value.trim()
+              if (nombre) {
+                hijos.push({
+                  nombre: nombre,
+                  apellidoPaterno: entry.querySelector('[data-hijo-ap-pat]').value.trim(),
+                  apellidoMaterno: entry.querySelector('[data-hijo-ap-mat]').value.trim(),
+                  grado: entry.querySelector('[data-hijo-grado]').value,
+                  grupo: entry.querySelector('[data-hijo-grupo]').value,
+                  parentesco: entry.querySelector('[data-hijo-parentesco]').value
+                })
+              }
+            })
+            result = await registrarPadreConHijos(datosBase, hijos)
+          } else {
+            result = await registrarUsuario(datosBase)
+          }
+
           if (result.success) {
-            console.log('[Auth] Registro exitoso:', result.nombre, '(' + result.rol + ')')
+            console.log('[Auth] Registro exitoso')
             localStorage.setItem('session_usuario', JSON.stringify({
               id_usuario: result.id_usuario,
-              nombre: result.nombre,
-              apellido_paterno: result.apellido_paterno,
-              correo: result.correo,
-              rol: result.rol
+              nombre: datosBase.nombre,
+              apellido_paterno: datosBase.apellidoPaterno,
+              correo: datosBase.correo,
+              rol: rol
             }))
             console.log('[Auth] Sesión guardada, redirigiendo...')
             window.location.href = 'dashboard.html'
