@@ -22,33 +22,34 @@
         <span class="login-logo-text">TaskTracker</span>
       </div>
 
-      <div class="tabs" data-tab-container style="margin-bottom: 24px;">
-        <div class="tab-item active" data-tab="tab-login">Iniciar Sesión</div>
-        <div class="tab-item" data-tab="tab-register">Registrarse</div>
+      <div class="tabs login-tabs" data-tab-container>
+        <div class="tab-item active" data-tab="loginTab">Iniciar Sesión</div>
+        <div class="tab-item" data-tab="registerTab">Registrarse</div>
       </div>
 
-      <div id="tab-login" class="tab-content active">
-        <p class="login-subtitle">Accede al panel de administración educativa</p>
+      <div id="loginTab" class="tab-content active">
         <form class="login-form" id="loginForm">
           <div class="form-group">
             <label class="form-label" for="loginEmail">Correo electrónico</label>
-            <input class="form-input" type="email" id="loginEmail" placeholder="admin@institucion.edu" required />
+            <input class="form-input" type="email" id="loginEmail" placeholder="admin@institucion.edu" autocomplete="email" required />
           </div>
           <div class="form-group">
             <label class="form-label" for="loginPassword">Contraseña</label>
-            <input class="form-input" type="password" id="loginPassword" placeholder="••••••••" required />
+            <input class="form-input" type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" required />
           </div>
           <div id="loginError" class="alert alert-error" style="display: none; margin-bottom: 12px;"></div>
           <button class="btn btn-primary btn-lg w-100" type="submit" id="loginBtn">Iniciar Sesión</button>
         </form>
+        <p class="login-footer">
+          ¿Olvidaste tu contraseña? <a href="#" style="color: var(--primary); font-weight: 500;">Recuperar acceso</a>
+        </p>
       </div>
 
-      <div id="tab-register" class="tab-content">
-        <p class="login-subtitle">Crea una cuenta en el sistema educativo</p>
+      <div id="registerTab" class="tab-content">
         <form class="login-form" id="registerForm">
           <div class="form-group">
             <label class="form-label" for="regNombre">Nombre</label>
-            <input class="form-input" type="text" id="regNombre" placeholder="Tu nombre" required />
+            <input class="form-input" type="text" id="regNombre" placeholder="Tu nombre" autocomplete="name" required />
           </div>
           <div class="form-group">
             <label class="form-label" for="regApPat">Apellido Paterno</label>
@@ -60,7 +61,7 @@
           </div>
           <div class="form-group">
             <label class="form-label" for="regCorreo">Correo electrónico</label>
-            <input class="form-input" type="email" id="regCorreo" placeholder="correo@institucion.edu" required />
+            <input class="form-input" type="email" id="regCorreo" placeholder="correo@institucion.edu" autocomplete="email" required />
           </div>
           <div class="form-group">
             <label class="form-label" for="regTelefono">Teléfono</label>
@@ -76,7 +77,11 @@
           </div>
           <div class="form-group">
             <label class="form-label" for="regPassword">Contraseña</label>
-            <input class="form-input" type="password" id="regPassword" placeholder="••••••••" required />
+            <input class="form-input" type="password" id="regPassword" placeholder="••••••••" autocomplete="new-password" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regConfirm">Confirmar contraseña</label>
+            <input class="form-input" type="password" id="regConfirm" placeholder="••••••••" autocomplete="new-password" />
           </div>
 
           <!-- Sección de hijos (visible solo para rol PADRE) -->
@@ -91,6 +96,9 @@
           <div id="registerError" class="alert alert-error" style="display: none; margin-bottom: 12px;"></div>
           <button class="btn btn-primary btn-lg w-100" type="submit" id="registerBtn">Crear Cuenta</button>
         </form>
+        <p class="login-footer">
+          ¿Ya tienes cuenta? <a href="#" style="color: var(--primary); font-weight: 500;" class="switch-to-login">Inicia Sesión</a>
+        </p>
       </div>
 
     </div>
