@@ -156,3 +156,116 @@ async function obtenerDocentes() {
   console.log('[Supabase] Docentes obtenidos:', data?.length || 0)
   return data || []
 }
+
+/* ==========================================================
+   FUNCIONES DE ASIGNACIÓN (Docente - Grupo - Materia)
+   ========================================================== */
+
+async function obtenerMaterias() {
+  const { data, error } = await window.__sbClient.rpc('obtener_materias')
+  if (error) throw error
+  return data || []
+}
+
+async function crearMateria(nombre) {
+  const { data, error } = await window.__sbClient.rpc('crear_materia', { p_nombre: nombre })
+  if (error) throw error
+  return data
+}
+
+async function eliminarMateria(id) {
+  const { data, error } = await window.__sbClient.rpc('eliminar_materia', { p_id_materia: id })
+  if (error) throw error
+  return data
+}
+
+async function asignarMateriasDocente(idDocente, materias) {
+  const { data, error } = await window.__sbClient.rpc('asignar_materias_docente', {
+    p_id_docente: idDocente,
+    p_materias: materias
+  })
+  if (error) throw error
+  return data
+}
+
+async function asignarDocenteGrupo(idDocente, idGrado, idGrupo, idMateria) {
+  const { data, error } = await window.__sbClient.rpc('asignar_docente_grupo', {
+    p_id_docente: idDocente,
+    p_id_grado: idGrado,
+    p_id_grupo: idGrupo,
+    p_id_materia: idMateria
+  })
+  if (error) throw error
+  return data
+}
+
+async function obtenerAsignacionesGrupoPorDocente(idDocente) {
+  const { data, error } = await window.__sbClient.rpc('obtener_asignaciones_grupo_por_docente', {
+    p_id_docente: idDocente
+  })
+  if (error) throw error
+  return data || []
+}
+
+async function asignarDocenteAlumno(idDocente, idAlumno, idMateria) {
+  const { data, error } = await window.__sbClient.rpc('asignar_docente_alumno', {
+    p_id_docente: idDocente,
+    p_id_alumno: idAlumno,
+    p_id_materia: idMateria
+  })
+  if (error) throw error
+  return data
+}
+
+async function obtenerAsignacionesAlumnoPorDocente(idDocente) {
+  const { data, error } = await window.__sbClient.rpc('obtener_asignaciones_alumno_por_docente', {
+    p_id_docente: idDocente
+  })
+  if (error) throw error
+  return data || []
+}
+
+async function eliminarAsignacionDocente(idAsignacion, tipo) {
+  const { data, error } = await window.__sbClient.rpc('eliminar_asignacion_docente', {
+    p_id_asignacion: idAsignacion,
+    p_tipo: tipo
+  })
+  if (error) throw error
+  return data
+}
+
+async function obtenerGrados() {
+  const { data, error } = await window.__sbClient.rpc('obtener_grados')
+  if (error) throw error
+  return data || []
+}
+
+async function obtenerGrupos() {
+  const { data, error } = await window.__sbClient.rpc('obtener_grupos')
+  if (error) throw error
+  return data || []
+}
+
+async function obtenerAlumnos() {
+  const { data, error } = await window.__sbClient.rpc('obtener_alumnos')
+  if (error) throw error
+  return data || []
+}
+
+async function actualizarModoAsignacion(modo) {
+  const { data, error } = await window.__sbClient.rpc('actualizar_modo_asignacion', { p_modo: modo })
+  if (error) throw error
+  return data
+}
+
+async function obtenerConfiguracionAdmin() {
+  const { data, error } = await window.__sbClient.rpc('obtener_configuracion_admin')
+  if (error) throw error
+  return data
+}
+
+async function obtenerConteoAlumnosPorDocente() {
+  const { data, error } = await window.__sbClient.rpc('obtener_conteo_alumnos_por_docente')
+  if (error) throw error
+  return data || []
+}

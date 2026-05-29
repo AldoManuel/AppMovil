@@ -197,9 +197,170 @@
             </div>
           </div>
         </div>
+
+          <!-- Gestión de Materias -->
+          <div class="settings-section" style="grid-column: 1 / -1;">
+            <h3 class="settings-section-title">Gestión de Materias</h3>
+            <div class="settings-card">
+              <div class="setting-item" style="flex-wrap: wrap; gap: 12px;">
+                <div class="setting-info" style="flex: 1; min-width: 200px;">
+                  <h4>Agregar Nueva Materia</h4>
+                  <p>Registra una nueva asignatura en el sistema</p>
+                </div>
+                <div style="display: flex; gap: 8px; flex: 1; min-width: 250px;">
+                  <input type="text" id="inputNuevaMateria" class="form-input" placeholder="Nombre de la materia..." style="flex: 1;" />
+                  <button class="btn btn-primary" id="btnAgregarMateria">➕ Agregar</button>
+                </div>
+              </div>
+              <div style="margin-top: 8px;">
+                <h4 style="margin-bottom: 8px;">Materias Registradas</h4>
+                <div id="listaMaterias" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modo de Asignación -->
+          <div class="settings-section" style="grid-column: 1 / -1;">
+            <h3 class="settings-section-title">Asignación de Alumnos</h3>
+            <div class="settings-card">
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h4>Modo de Asignación Global</h4>
+                  <p>Define cómo se asignan los alumnos a los docentes</p>
+                </div>
+                <select id="selectModoAsignacion" class="form-select" style="width: auto;">
+                  <option value="AUTO">Automático (por grupo)</option>
+                  <option value="MANUAL">Manual (por alumno)</option>
+                </select>
+              </div>
+              <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">
+                <strong>AUTO:</strong> Los alumnos se asignan automáticamente según el grado y grupo que el docente tenga asignado.<br>
+                <strong>MANUAL:</strong> El admin selecciona individualmente qué alumnos asigna a cada docente.
+              </p>
+            </div>
+          </div>
+
+        </div>
       </div>
     </main>
   </div>
   <script src="assets/js/main.js"></script>
+  <script>
+    ;(function () {
+      function escapeHtml(str) {
+        if (!str) return ''
+        var div = document.createElement('div')
+        div.appendChild(document.createTextNode(str))
+        return div.innerHTML
+      }
+
+      function cargarMaterias() {
+        obtenerMaterias().then(function (materias) {
+          var container = document.getElementById('listaMaterias')
+          if (!container) return
+          if (!materias || materias.length === 0) {
+            container.innerHTML = '<p style="color:var(--text-muted);grid-column:1/-1;text-align:center;padding:20px;">No hay materias registradas</p>'
+            return
+          }
+          var html = ''
+          materias.forEach(function (m) {
+            html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:6px;">' +
+              '<span>' + escapeHtml(m.nombre) + '</span>' +
+              '<button class="btn btn-danger btn-sm btn-eliminar-materia" data-id="' + m.id_materia + '" data-nombre="' + escapeHtml(m.nombre) + '">🗑️</button>' +
+            '</div>'
+          })
+          container.innerHTML = html
+
+          container.querySelectorAll('.btn-eliminar-materia').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+              var id = parseInt(this.getAttribute('data-id'))
+              var nombre = this.getAttribute('data-nombre')
+              if (confirm('¿Eliminar la materia "' + nombre + '"?\nLos docentes perderán esta asignación.')) {
+                eliminarMateria(id).then(function (res) {
+                  if (res.success) {
+                    showToast('Materia eliminada')
+                    cargarMaterias()
+                  } else {
+                    showToast('Error: ' + (res.error || 'desconocido'))
+                  }
+                }).catch(function (err) {
+                  console.error('[Materias] Error al eliminar:', err)
+                  showToast('Error al eliminar materia')
+                })
+              }
+            })
+          })
+        }).catch(function (err) {
+          console.error('[Materias] Error al cargar:', err)
+        })
+      }
+
+      function cargarModoAsignacion() {
+        obtenerConfiguracionAdmin().then(function (config) {
+          var sel = document.getElementById('selectModoAsignacion')
+          if (sel && config) {
+            sel.value = config.modo_asignacion || 'AUTO'
+          }
+        }).catch(function (err) {
+          console.error('[Config] Error al cargar modo:', err)
+        })
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        cargarMaterias()
+        cargarModoAsignacion()
+
+        var btnAdd = document.getElementById('btnAgregarMateria')
+        var input = document.getElementById('inputNuevaMateria')
+        if (btnAdd && input) {
+          btnAdd.addEventListener('click', function () {
+            var nombre = input.value.trim()
+            if (!nombre) {
+              showToast('Ingresa un nombre para la materia')
+              return
+            }
+            btnAdd.disabled = true
+            btnAdd.textContent = 'Agregando...'
+            crearMateria(nombre).then(function (res) {
+              if (res.success) {
+                showToast('Materia creada: ' + nombre)
+                input.value = ''
+                cargarMaterias()
+              } else {
+                showToast('Error: ' + (res.error || 'desconocido'))
+              }
+              btnAdd.disabled = false
+              btnAdd.textContent = '➕ Agregar'
+            }).catch(function (err) {
+              console.error('[Materias] Error al crear:', err)
+              showToast('Error al crear materia')
+              btnAdd.disabled = false
+              btnAdd.textContent = '➕ Agregar'
+            })
+          })
+          input.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') btnAdd.click()
+          })
+        }
+
+        var selModo = document.getElementById('selectModoAsignacion')
+        if (selModo) {
+          selModo.addEventListener('change', function () {
+            var modo = this.value
+            actualizarModoAsignacion(modo).then(function (res) {
+              if (res.success) {
+                showToast('Modo de asignación actualizado a: ' + (modo === 'AUTO' ? 'Automático' : 'Manual'))
+              } else {
+                showToast('Error al actualizar modo')
+              }
+            }).catch(function (err) {
+              console.error('[Config] Error al cambiar modo:', err)
+              showToast('Error al cambiar modo de asignación')
+            })
+          })
+        }
+      })
+    })()
+  </script>
 </body>
 </html>
