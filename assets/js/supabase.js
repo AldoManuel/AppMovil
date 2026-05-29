@@ -148,3 +148,11 @@ async function eliminarEvento(id) {
   console.log('[Supabase] Respuesta eliminar evento:', data)
   return data
 }
+
+async function obtenerDocentes() {
+  console.log('[Supabase] Obteniendo docentes...')
+  const { data, error } = await window.__sbClient.rpc('obtener_docentes')
+  if (error) throw error
+  console.log('[Supabase] Docentes obtenidos:', data?.length || 0)
+  return data || []
+}

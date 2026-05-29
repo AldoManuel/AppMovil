@@ -756,6 +756,41 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 GRANT EXECUTE ON FUNCTION registrar_padre_con_hijos TO anon;
 GRANT EXECUTE ON FUNCTION obtener_padres_con_hijos TO anon;
 GRANT EXECUTE ON FUNCTION actualizar_padre_con_hijos TO anon;
+CREATE OR REPLACE FUNCTION obtener_docentes()
+RETURNS JSON AS $$
+DECLARE
+  v_result JSON;
+BEGIN
+  SELECT json_agg(json_build_object(
+    'id_docente', u.id_usuario,
+    'nombre', u.nombre,
+    'apellido_paterno', u.apellido_paterno,
+    'apellido_materno', u.apellido_materno,
+    'correo', u.correo,
+    'telefono', u.telefono,
+    'activo', u.activo,
+    'experiencia', d.experiencia,
+    'materias', COALESCE((
+      SELECT json_agg(json_build_object(
+        'id_materia', m.id_materia,
+        'nombre', m.nombre
+      ) ORDER BY m.nombre)
+      FROM public.docente_materia dm
+      JOIN public.materia m ON m.id_materia = dm.id_materia
+      WHERE dm.id_docente = u.id_usuario
+    ), '[]'::json)
+  ) ORDER BY u.nombre, u.apellido_paterno)
+  INTO v_result
+  FROM public.usuario u
+  JOIN public.docente d ON d.id_docente = u.id_usuario
+  WHERE u.rol = 'DOCENTE' AND u.activo = true;
+
+  RETURN COALESCE(v_result, '[]'::json);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION obtener_docentes TO anon;
+
 GRANT EXECUTE ON FUNCTION obtener_eventos TO anon;
 GRANT EXECUTE ON FUNCTION crear_evento TO anon;
 GRANT EXECUTE ON FUNCTION eliminar_evento TO anon;
