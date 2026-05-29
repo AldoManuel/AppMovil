@@ -15,7 +15,5 @@ desktop.ini
 .env.local
 .env.*
 
-# archivos 
-database.sql
-notasdiseño.md
+# notas
 notas.md
