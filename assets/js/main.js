@@ -291,6 +291,18 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   /* ==========================================================
+     SWITCH TAB LOGIN (desde registro)
+     ========================================================== */
+  const switchToLogin = document.querySelector('.switch-to-login');
+  if (switchToLogin) {
+    switchToLogin.addEventListener('click', function (e) {
+      e.preventDefault();
+      const loginTab = document.querySelector('[data-tab="loginTab"]');
+      if (loginTab) loginTab.click();
+    });
+  }
+
+  /* ==========================================================
      BOTÓN AGREGAR (Simulado)
      ========================================================== */
   document.querySelectorAll('[data-action="add"]').forEach(function (btn) {

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- ==========================================================
   Sistema de Gestión Educativa
-  Página: Login Administrador
+  Página: Login / Registro
   ========================================================== -->
 <html lang="es">
 <head>
@@ -22,42 +22,114 @@
         <span class="login-logo-text">TaskTracker</span>
       </div>
 
-      <!-- Título -->
-      <h1 class="login-title">Iniciar Sesión</h1>
-      <p class="login-subtitle">Accede al panel de administración educativa</p>
+      <!-- Tabs -->
+      <div class="tabs login-tabs">
+        <div class="tab-item active" data-tab="loginTab">Iniciar Sesión</div>
+        <div class="tab-item" data-tab="registerTab">Registrarse</div>
+      </div>
 
-      <!-- Formulario (solo visual) -->
-      <form class="login-form" onsubmit="return false;">
-        <div class="form-group">
-          <label class="form-label" for="loginEmail">Correo electrónico</label>
-          <input
-            class="form-input"
-            type="email"
-            id="loginEmail"
-            placeholder="admin@institucion.edu"
-            autocomplete="email"
-          />
-        </div>
+      <!-- Tab: Iniciar Sesión -->
+      <div class="tab-content active" id="loginTab">
+        <form class="login-form" onsubmit="return false;">
+          <div class="form-group">
+            <label class="form-label" for="loginEmail">Correo electrónico</label>
+            <input
+              class="form-input"
+              type="email"
+              id="loginEmail"
+              placeholder="admin@institucion.edu"
+              autocomplete="email"
+            />
+          </div>
 
-        <div class="form-group">
-          <label class="form-label" for="loginPassword">Contraseña</label>
-          <input
-            class="form-input"
-            type="password"
-            id="loginPassword"
-            placeholder="••••••••"
-            autocomplete="current-password"
-          />
-        </div>
+          <div class="form-group">
+            <label class="form-label" for="loginPassword">Contraseña</label>
+            <input
+              class="form-input"
+              type="password"
+              id="loginPassword"
+              placeholder="••••••••"
+              autocomplete="current-password"
+            />
+          </div>
 
-        <button class="btn btn-primary btn-lg w-100" onclick="window.location.href='dashboard.html'">
-          Iniciar Sesión
-        </button>
-      </form>
+          <button class="btn btn-primary btn-lg w-100" onclick="window.location.href='dashboard.html'">
+            Iniciar Sesión
+          </button>
+        </form>
 
-      <p class="login-footer">
-        ¿Olvidaste tu contraseña? <a href="#" style="color: var(--primary); font-weight: 500;">Recuperar acceso</a>
-      </p>
+        <p class="login-footer">
+          ¿Olvidaste tu contraseña? <a href="#" style="color: var(--primary); font-weight: 500;">Recuperar acceso</a>
+        </p>
+      </div>
+
+      <!-- Tab: Registrarse -->
+      <div class="tab-content" id="registerTab">
+        <form class="login-form" onsubmit="return false;">
+          <div class="form-group">
+            <label class="form-label" for="regName">Nombre completo</label>
+            <input
+              class="form-input"
+              type="text"
+              id="regName"
+              placeholder="Tu nombre completo"
+              autocomplete="name"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="regEmail">Correo electrónico</label>
+            <input
+              class="form-input"
+              type="email"
+              id="regEmail"
+              placeholder="correo@ejemplo.com"
+              autocomplete="email"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="regRole">Rol</label>
+            <select class="form-select" id="regRole">
+              <option value="">Seleccionar rol</option>
+              <option value="docente">Docente</option>
+              <option value="padre">Padre de Familia</option>
+              <option value="administrativo">Personal Administrativo</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="regPassword">Contraseña</label>
+            <input
+              class="form-input"
+              type="password"
+              id="regPassword"
+              placeholder="••••••••"
+              autocomplete="new-password"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="regConfirm">Confirmar contraseña</label>
+            <input
+              class="form-input"
+              type="password"
+              id="regConfirm"
+              placeholder="••••••••"
+              autocomplete="new-password"
+            />
+          </div>
+
+          <button class="btn btn-primary btn-lg w-100" data-toast="Registro simulado — cuenta creada exitosamente">
+            Crear Cuenta
+          </button>
+        </form>
+
+        <p class="login-footer">
+          ¿Ya tienes cuenta? <a href="#" style="color: var(--primary); font-weight: 500;" class="switch-to-login">Inicia Sesión</a>
+        </p>
+      </div>
+
     </div>
   </div>
 
@@ -73,5 +145,6 @@
     </div>
   </div>
 
+  <script src="assets/js/main.js"></script>
 </body>
 </html>
