@@ -1652,24 +1652,6 @@ input, select, textarea {
   box-shadow: var(--shadow-lg);
 }
 
-.login-footer {
-  text-align: center;
-  margin-top: 24px;
-  font-size: 13px;
-  color: var(--text-light);
-}
-
-.login-tabs {
-  margin-bottom: 28px;
-}
-
-.login-tabs .tab-item {
-  flex: 1;
-  text-align: center;
-  font-size: 15px;
-  padding: 14px 20px;
-}
-
 .login-right {
   flex: 1;
   background: linear-gradient(135deg, var(--primary) 0%, #0d47a1 100%);
