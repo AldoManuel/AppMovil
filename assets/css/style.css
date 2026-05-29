@@ -1974,6 +1974,7 @@ input, select, textarea {
   .sidebar-toggle {
     left: calc(var(--sidebar-collapsed) + 12px);
   }
+}
 
 .login-tabs {
   margin-bottom: 28px;
@@ -2003,6 +2004,7 @@ input, select, textarea {
   text-decoration: underline;
 }
 
+@media (max-width: 768px) {
 .login-right {
     display: none;
   }
