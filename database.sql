@@ -299,13 +299,13 @@ INSERT INTO public.padre (id_padre) VALUES
   ('a0000000-0000-0000-0000-000000000012');
 
 -- 10.4 Alumnos (asignación a grupos y promedios)
-INSERT INTO public.alumno (id_alumno, id_grupo, promedio) VALUES
-  ('a0000000-0000-0000-0000-000000000013', 1, 9.2),  -- Diego Martínez  -> 4° Primaria, Grupo A
-  ('a0000000-0000-0000-0000-000000000014', 2, 8.8),  -- Sofía Díaz      -> 5° Primaria, Grupo B
-  ('a0000000-0000-0000-0000-000000000015', 1, 7.5),  -- Carlos Hernández -> 3° Primaria, Grupo A
-  ('a0000000-0000-0000-0000-000000000016', 3, 6.1),  -- Ana Torres      -> 6° Primaria, Grupo C
-  ('a0000000-0000-0000-0000-000000000017', 1, 9.5),  -- Luis Díaz       -> 2° Primaria, Grupo A
-  ('a0000000-0000-0000-0000-000000000018', 2, 8.0);  -- Pedro Mendoza   -> 1° Primaria, Grupo B
+INSERT INTO public.alumno (id_alumno, id_grado, id_grupo, promedio) VALUES
+  ('a0000000-0000-0000-0000-000000000013', 4, 1, 9.2),  -- Diego Martínez  -> 4° Primaria, Grupo A
+  ('a0000000-0000-0000-0000-000000000014', 5, 2, 8.8),  -- Sofía Díaz      -> 5° Primaria, Grupo B
+  ('a0000000-0000-0000-0000-000000000015', 3, 1, 7.5),  -- Carlos Hernández -> 3° Primaria, Grupo A
+  ('a0000000-0000-0000-0000-000000000016', 6, 3, 6.1),  -- Ana Torres      -> 6° Primaria, Grupo C
+  ('a0000000-0000-0000-0000-000000000017', 2, 1, 9.5),  -- Luis Díaz       -> 2° Primaria, Grupo A
+  ('a0000000-0000-0000-0000-000000000018', 1, 2, 8.0);  -- Pedro Mendoza   -> 1° Primaria, Grupo B
 
 -- 10.5 Relación Alumno ↔ Padre (con parentesco)
 INSERT INTO public.alumno_padre (id_alumno, id_padre, parentesco) VALUES
@@ -794,6 +794,452 @@ GRANT EXECUTE ON FUNCTION obtener_docentes TO anon;
 GRANT EXECUTE ON FUNCTION obtener_eventos TO anon;
 GRANT EXECUTE ON FUNCTION crear_evento TO anon;
 GRANT EXECUTE ON FUNCTION eliminar_evento TO anon;
+
+-- ==========================================================
+-- 20. TABLAS DE ASIGNACIÓN DOCENTE
+-- ==========================================================
+
+-- 20.1 Asignación automática por grupo (modo AUTO)
+CREATE TABLE IF NOT EXISTS public.docente_asignacion_grupo (
+  id_asignacion SERIAL PRIMARY KEY,
+  id_docente UUID NOT NULL REFERENCES public.docente(id_docente) ON DELETE CASCADE,
+  id_grado INTEGER NOT NULL REFERENCES public.grado(id_grado) ON DELETE CASCADE,
+  id_grupo INTEGER NOT NULL REFERENCES public.grupo(id_grupo) ON DELETE CASCADE,
+  id_materia INTEGER NOT NULL REFERENCES public.materia(id_materia) ON DELETE CASCADE,
+  activo BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (id_docente, id_grado, id_grupo, id_materia)
+);
+
+-- 20.2 Asignación manual individual (modo MANUAL)
+CREATE TABLE IF NOT EXISTS public.docente_asignacion_alumno (
+  id_asignacion SERIAL PRIMARY KEY,
+  id_docente UUID NOT NULL REFERENCES public.docente(id_docente) ON DELETE CASCADE,
+  id_alumno UUID NOT NULL REFERENCES public.alumno(id_alumno) ON DELETE CASCADE,
+  id_materia INTEGER NOT NULL REFERENCES public.materia(id_materia) ON DELETE CASCADE,
+  activo BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (id_docente, id_alumno, id_materia)
+);
+
+-- 20.3 Agregar columna modo_asignacion a configuracion
+ALTER TABLE public.configuracion ADD COLUMN IF NOT EXISTS modo_asignacion VARCHAR(10) DEFAULT 'AUTO' CHECK (modo_asignacion IN ('AUTO', 'MANUAL'));
+
+-- ==========================================================
+-- 21. ÍNDICES PARA ASIGNACIONES
+-- ==========================================================
+
+CREATE INDEX IF NOT EXISTS idx_doc_asig_grupo_docente ON public.docente_asignacion_grupo(id_docente);
+CREATE INDEX IF NOT EXISTS idx_doc_asig_alumno_docente ON public.docente_asignacion_alumno(id_docente);
+
+-- ==========================================================
+-- 22. FUNCIONES RPC — MATERIAS (CRUD)
+-- ==========================================================
+
+CREATE OR REPLACE FUNCTION obtener_materias()
+RETURNS JSON AS $$
+DECLARE
+  v_result JSON;
+BEGIN
+  SELECT json_agg(json_build_object(
+    'id_materia', m.id_materia,
+    'nombre', m.nombre
+  ) ORDER BY m.nombre)
+  INTO v_result
+  FROM public.materia m;
+  RETURN COALESCE(v_result, '[]'::json);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION crear_materia(p_nombre VARCHAR)
+RETURNS JSON AS $$
+DECLARE
+  v_existe BOOLEAN;
+BEGIN
+  SELECT EXISTS(SELECT 1 FROM public.materia WHERE nombre = p_nombre) INTO v_existe;
+  IF v_existe THEN
+    RETURN json_build_object('success', false, 'error', 'La materia ya existe');
+  END IF;
+  INSERT INTO public.materia (nombre) VALUES (p_nombre);
+  RETURN json_build_object('success', true);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION eliminar_materia(p_id_materia INTEGER)
+RETURNS JSON AS $$
+BEGIN
+  DELETE FROM public.materia WHERE id_materia = p_id_materia;
+  RETURN json_build_object('success', true);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==========================================================
+-- 23. FUNCIONES RPC — ASIGNACIÓN DE MATERIAS A DOCENTE
+-- ==========================================================
+
+CREATE OR REPLACE FUNCTION asignar_materias_docente(
+  p_id_docente UUID,
+  p_materias INTEGER[]
+) RETURNS JSON AS $$
+BEGIN
+  DELETE FROM public.docente_materia WHERE id_docente = p_id_docente;
+  IF array_length(p_materias, 1) > 0 THEN
+    INSERT INTO public.docente_materia (id_docente, id_materia)
+    SELECT p_id_docente, unnest(p_materias);
+  END IF;
+  RETURN json_build_object('success', true);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==========================================================
+-- 24. FUNCIONES RPC — ASIGNACIÓN DOCENTE A GRUPO (AUTO)
+-- ==========================================================
+
+CREATE OR REPLACE FUNCTION asignar_docente_grupo(
+  p_id_docente UUID,
+  p_id_grado INTEGER,
+  p_id_grupo INTEGER,
+  p_id_materia INTEGER
+) RETURNS JSON AS $$
+BEGIN
+  INSERT INTO public.docente_asignacion_grupo (id_docente, id_grado, id_grupo, id_materia)
+  VALUES (p_id_docente, p_id_grado, p_id_grupo, p_id_materia)
+  ON CONFLICT (id_docente, id_grado, id_grupo, id_materia)
+  DO UPDATE SET activo = true;
+  RETURN json_build_object('success', true);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION obtener_asignaciones_grupo_por_docente(p_id_docente UUID)
+RETURNS JSON AS $$
+DECLARE
+  v_result JSON;
+BEGIN
+  SELECT json_agg(json_build_object(
+    'id_asignacion', ag.id_asignacion,
+    'id_grado', ag.id_grado,
+    'grado', g.nombre,
+    'id_grupo', ag.id_grupo,
+    'grupo', gp.nombre,
+    'id_materia', ag.id_materia,
+    'materia', m.nombre,
+    'total_alumnos', COALESCE((
+      SELECT COUNT(*) FROM public.alumno a
+      WHERE a.id_grado = ag.id_grado AND a.id_grupo = ag.id_grupo
+    ), 0)
+  ) ORDER BY g.nivel, gp.nombre, m.nombre)
+  INTO v_result
+  FROM public.docente_asignacion_grupo ag
+  JOIN public.grado g ON g.id_grado = ag.id_grado
+  JOIN public.grupo gp ON gp.id_grupo = ag.id_grupo
+  JOIN public.materia m ON m.id_materia = ag.id_materia
+  WHERE ag.id_docente = p_id_docente AND ag.activo = true;
+  RETURN COALESCE(v_result, '[]'::json);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==========================================================
+-- 25. FUNCIONES RPC — ASIGNACIÓN DOCENTE A ALUMNO (MANUAL)
+-- ==========================================================
+
+CREATE OR REPLACE FUNCTION asignar_docente_alumno(
+  p_id_docente UUID,
+  p_id_alumno UUID,
+  p_id_materia INTEGER
+) RETURNS JSON AS $$
+BEGIN
+  INSERT INTO public.docente_asignacion_alumno (id_docente, id_alumno, id_materia)
+  VALUES (p_id_docente, p_id_alumno, p_id_materia)
+  ON CONFLICT (id_docente, id_alumno, id_materia)
+  DO UPDATE SET activo = true;
+  RETURN json_build_object('success', true);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION obtener_asignaciones_alumno_por_docente(p_id_docente UUID)
+RETURNS JSON AS $$
+DECLARE
+  v_result JSON;
+BEGIN
+  SELECT json_agg(json_build_object(
+    'id_asignacion', aa.id_asignacion,
+    'id_alumno', aa.id_alumno,
+    'nombre_alumno', u.nombre || ' ' || COALESCE(u.apellido_paterno, ''),
+    'id_materia', aa.id_materia,
+    'materia', m.nombre,
+    'grado', g.nombre,
+    'grupo', gp.nombre
+  ) ORDER BY u.nombre)
+  INTO v_result
+  FROM public.docente_asignacion_alumno aa
+  JOIN public.alumno a ON a.id_alumno = aa.id_alumno
+  JOIN public.usuario u ON u.id_usuario = a.id_alumno
+  JOIN public.materia m ON m.id_materia = aa.id_materia
+  LEFT JOIN public.grado g ON g.id_grado = a.id_grado
+  LEFT JOIN public.grupo gp ON gp.id_grupo = a.id_grupo
+  WHERE aa.id_docente = p_id_docente AND aa.activo = true;
+  RETURN COALESCE(v_result, '[]'::json);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==========================================================
+-- 26. FUNCIÓN — ELIMINAR ASIGNACIÓN
+-- ==========================================================
+
+CREATE OR REPLACE FUNCTION eliminar_asignacion_docente(
+  p_id_asignacion INTEGER,
+  p_tipo VARCHAR
+) RETURNS JSON AS $$
+BEGIN
+  IF p_tipo = 'GRUPO' THEN
+    UPDATE public.docente_asignacion_grupo SET activo = false WHERE id_asignacion = p_id_asignacion;
+  ELSIF p_tipo = 'ALUMNO' THEN
+    UPDATE public.docente_asignacion_alumno SET activo = false WHERE id_asignacion = p_id_asignacion;
+  ELSE
+    RETURN json_build_object('success', false, 'error', 'Tipo inválido');
+  END IF;
+  RETURN json_build_object('success', true);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==========================================================
+-- 27. FUNCIÓN — OBTENER GRADOS Y GRUPOS (para selects)
+-- ==========================================================
+
+CREATE OR REPLACE FUNCTION obtener_grados()
+RETURNS JSON AS $$
+DECLARE
+  v_result JSON;
+BEGIN
+  SELECT json_agg(json_build_object(
+    'id_grado', g.id_grado,
+    'nombre', g.nombre,
+    'nivel', g.nivel
+  ) ORDER BY g.nivel)
+  INTO v_result
+  FROM public.grado g;
+  RETURN COALESCE(v_result, '[]'::json);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION obtener_grupos()
+RETURNS JSON AS $$
+DECLARE
+  v_result JSON;
+BEGIN
+  SELECT json_agg(json_build_object(
+    'id_grupo', g.id_grupo,
+    'nombre', g.nombre
+  ) ORDER BY g.nombre)
+  INTO v_result
+  FROM public.grupo g;
+  RETURN COALESCE(v_result, '[]'::json);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==========================================================
+-- 28. FUNCIÓN — OBTENER ALUMNOS (para selección manual)
+-- ==========================================================
+
+CREATE OR REPLACE FUNCTION obtener_alumnos()
+RETURNS JSON AS $$
+DECLARE
+  v_result JSON;
+BEGIN
+  SELECT json_agg(json_build_object(
+    'id_alumno', u.id_usuario,
+    'nombre', u.nombre,
+    'apellido_paterno', u.apellido_paterno,
+    'apellido_materno', u.apellido_materno,
+    'grado', g.nombre,
+    'id_grado', a.id_grado,
+    'grupo', gp.nombre,
+    'id_grupo', a.id_grupo
+  ) ORDER BY g.nivel, gp.nombre, u.nombre)
+  INTO v_result
+  FROM public.usuario u
+  JOIN public.alumno a ON a.id_alumno = u.id_usuario
+  LEFT JOIN public.grado g ON g.id_grado = a.id_grado
+  LEFT JOIN public.grupo gp ON gp.id_grupo = a.id_grupo
+  WHERE u.rol = 'ALUMNO' AND u.activo = true;
+  RETURN COALESCE(v_result, '[]'::json);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==========================================================
+-- 29. FUNCIÓN — CONTEO DE ALUMNOS POR DOCENTE
+-- ==========================================================
+
+CREATE OR REPLACE FUNCTION obtener_conteo_alumnos_por_docente()
+RETURNS JSON AS $$
+DECLARE
+  v_result JSON;
+BEGIN
+  SELECT json_agg(json_build_object(
+    'id_docente', d.id_docente,
+    'total_alumnos', (
+      COALESCE((
+        SELECT COUNT(DISTINCT a.id_alumno)
+        FROM public.docente_asignacion_grupo dag
+        JOIN public.alumno a ON a.id_grado = dag.id_grado AND a.id_grupo = dag.id_grupo
+        WHERE dag.id_docente = d.id_docente AND dag.activo = true
+      ), 0) +
+      COALESCE((
+        SELECT COUNT(DISTINCT aa.id_alumno)
+        FROM public.docente_asignacion_alumno aa
+        WHERE aa.id_docente = d.id_docente AND aa.activo = true
+      ), 0)
+    )
+  ))
+  INTO v_result
+  FROM public.docente d;
+  RETURN COALESCE(v_result, '[]'::json);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==========================================================
+-- 30. MODIFICAR obtener_docentes PARA INCLUIR total_alumnos
+-- ==========================================================
+
+CREATE OR REPLACE FUNCTION obtener_docentes()
+RETURNS JSON AS $$
+DECLARE
+  v_result JSON;
+BEGIN
+  SELECT json_agg(json_build_object(
+    'id_docente', u.id_usuario,
+    'nombre', u.nombre,
+    'apellido_paterno', u.apellido_paterno,
+    'apellido_materno', u.apellido_materno,
+    'correo', u.correo,
+    'telefono', u.telefono,
+    'activo', u.activo,
+    'experiencia', d.experiencia,
+    'total_alumnos', (
+      COALESCE((
+        SELECT COUNT(DISTINCT a.id_alumno)
+        FROM public.docente_asignacion_grupo dag
+        JOIN public.alumno a ON a.id_grado = dag.id_grado AND a.id_grupo = dag.id_grupo
+        WHERE dag.id_docente = u.id_usuario AND dag.activo = true
+      ), 0) +
+      COALESCE((
+        SELECT COUNT(DISTINCT aa.id_alumno)
+        FROM public.docente_asignacion_alumno aa
+        WHERE aa.id_docente = u.id_usuario AND aa.activo = true
+      ), 0)
+    ),
+    'materias', COALESCE((
+      SELECT json_agg(json_build_object(
+        'id_materia', m.id_materia,
+        'nombre', m.nombre
+      ) ORDER BY m.nombre)
+      FROM public.docente_materia dm
+      JOIN public.materia m ON m.id_materia = dm.id_materia
+      WHERE dm.id_docente = u.id_usuario
+    ), '[]'::json)
+  ) ORDER BY u.nombre, u.apellido_paterno)
+  INTO v_result
+  FROM public.usuario u
+  JOIN public.docente d ON d.id_docente = u.id_usuario
+  WHERE u.rol = 'DOCENTE' AND u.activo = true;
+
+  RETURN COALESCE(v_result, '[]'::json);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==========================================================
+-- 31. DATOS INICIALES — ASIGNACIONES DE EJEMPLO
+-- ==========================================================
+
+-- María García (Matemáticas) -> 4° Primaria, Grupo A
+INSERT INTO public.docente_asignacion_grupo (id_docente, id_grado, id_grupo, id_materia)
+SELECT d.id_docente, g.id_grado, gp.id_grupo, m.id_materia
+FROM public.docente d, public.grado g, public.grupo gp, public.materia m
+WHERE d.id_docente = 'a0000000-0000-0000-0000-000000000002'
+  AND g.id_grado = 4 AND gp.id_grupo = 1 AND m.id_materia = 1
+ON CONFLICT DO NOTHING;
+
+-- Carlos Hernández (Historia) -> 5° Primaria, Grupo B
+INSERT INTO public.docente_asignacion_grupo (id_docente, id_grado, id_grupo, id_materia)
+SELECT d.id_docente, g.id_grado, gp.id_grupo, m.id_materia
+FROM public.docente d, public.grado g, public.grupo gp, public.materia m
+WHERE d.id_docente = 'a0000000-0000-0000-0000-000000000003'
+  AND g.id_grado = 5 AND gp.id_grupo = 2 AND m.id_materia = 2
+ON CONFLICT DO NOTHING;
+
+-- Ana Rodríguez (Ciencias Naturales) -> 3° Primaria, Grupo A
+INSERT INTO public.docente_asignacion_grupo (id_docente, id_grado, id_grupo, id_materia)
+SELECT d.id_docente, g.id_grado, gp.id_grupo, m.id_materia
+FROM public.docente d, public.grado g, public.grupo gp, public.materia m
+WHERE d.id_docente = 'a0000000-0000-0000-0000-000000000004'
+  AND g.id_grado = 3 AND gp.id_grupo = 1 AND m.id_materia = 3
+ON CONFLICT DO NOTHING;
+
+-- Laura Gómez (Lengua y Literatura) -> 2° Primaria, Grupo A
+INSERT INTO public.docente_asignacion_grupo (id_docente, id_grado, id_grupo, id_materia)
+SELECT d.id_docente, g.id_grado, gp.id_grupo, m.id_materia
+FROM public.docente d, public.grado g, public.grupo gp, public.materia m
+WHERE d.id_docente = 'a0000000-0000-0000-0000-000000000006'
+  AND g.id_grado = 2 AND gp.id_grupo = 1 AND m.id_materia = 5
+ON CONFLICT DO NOTHING;
+
+-- ==========================================================
+-- 32. CONFIGURACIÓN INICIAL — MODO ASIGNACIÓN
+-- ==========================================================
+
+UPDATE public.configuracion
+SET modo_asignacion = 'AUTO'
+WHERE id_usuario = 'a0000000-0000-0000-0000-000000000001';
+
+-- ==========================================================
+-- 33. PERMISOS
+-- ==========================================================
+
+GRANT EXECUTE ON FUNCTION obtener_materias TO anon;
+GRANT EXECUTE ON FUNCTION crear_materia TO anon;
+GRANT EXECUTE ON FUNCTION eliminar_materia TO anon;
+GRANT EXECUTE ON FUNCTION asignar_materias_docente TO anon;
+GRANT EXECUTE ON FUNCTION asignar_docente_grupo TO anon;
+GRANT EXECUTE ON FUNCTION obtener_asignaciones_grupo_por_docente TO anon;
+GRANT EXECUTE ON FUNCTION asignar_docente_alumno TO anon;
+GRANT EXECUTE ON FUNCTION obtener_asignaciones_alumno_por_docente TO anon;
+GRANT EXECUTE ON FUNCTION eliminar_asignacion_docente TO anon;
+GRANT EXECUTE ON FUNCTION obtener_grados TO anon;
+GRANT EXECUTE ON FUNCTION obtener_grupos TO anon;
+GRANT EXECUTE ON FUNCTION obtener_alumnos TO anon;
+GRANT EXECUTE ON FUNCTION obtener_conteo_alumnos_por_docente TO anon;
+
+CREATE OR REPLACE FUNCTION obtener_configuracion_admin()
+RETURNS JSON AS $$
+DECLARE
+  v_result JSON;
+BEGIN
+  SELECT json_build_object(
+    'modo_asignacion', COALESCE(c.modo_asignacion, 'AUTO')
+  )
+  INTO v_result
+  FROM public.configuracion c
+  WHERE c.id_usuario = 'a0000000-0000-0000-0000-000000000001';
+  RETURN v_result;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION obtener_configuracion_admin TO anon;
+
+CREATE OR REPLACE FUNCTION actualizar_modo_asignacion(p_modo VARCHAR)
+RETURNS JSON AS $$
+BEGIN
+  IF p_modo NOT IN ('AUTO', 'MANUAL') THEN
+    RETURN json_build_object('success', false, 'error', 'Modo inválido');
+  END IF;
+  UPDATE public.configuracion
+  SET modo_asignacion = p_modo
+  WHERE id_usuario = 'a0000000-0000-0000-0000-000000000001';
+  RETURN json_build_object('success', true);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION actualizar_modo_asignacion TO anon;
 
 -- ==========================================================
 -- FIN DEL SCRIPT
