@@ -292,16 +292,8 @@
           }
 
           if (result.success) {
-            console.log('[Auth] Registro exitoso')
-            localStorage.setItem('session_usuario', JSON.stringify({
-              id_usuario: result.id_usuario,
-              nombre: datosBase.nombre,
-              apellido_paterno: datosBase.apellidoPaterno,
-              correo: datosBase.correo,
-              rol: rol
-            }))
-            console.log('[Auth] Sesión guardada, redirigiendo...')
-            window.location.href = 'dashboard.html'
+            console.log('[Auth] Registro exitoso, redirigiendo a pantalla de confirmación...')
+            window.location.href = 'registro-exitoso.html?rol=' + encodeURIComponent(rol)
           } else {
             console.error('[Auth] Error de registro:', result.error)
             errorEl.textContent = result.error
