@@ -87,72 +87,17 @@
                   <th style="text-align: center;">Acciones</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td><strong>Ana Martínez Torres</strong></td>
-                  <td>ana.martinez@email.com</td>
-                  <td>+52 555 111 2233</td>
-                  <td>✏️ Diego Martínez</td>
-                  <td><span class="status status-active"><span class="status-dot"></span>Activo</span></td>
-                  <td style="text-align: center;">
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver">👁️</button>
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="edit" title="Editar">✏️</button>
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="delete" title="Eliminar">🗑️</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td><strong>Laura Díaz Flores</strong></td>
-                  <td>laura.diaz@email.com</td>
-                  <td>+52 555 222 3344</td>
-                  <td>🎒 Sofía Díaz, 🎒 Luis Díaz</td>
-                  <td><span class="status status-active"><span class="status-dot"></span>Activo</span></td>
-                  <td style="text-align: center;">
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver">👁️</button>
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="edit" title="Editar">✏️</button>
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="delete" title="Eliminar">🗑️</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td><strong>Roberto Hernández Ruiz</strong></td>
-                  <td>roberto.hernandez@email.com</td>
-                  <td>+52 555 333 4455</td>
-                  <td>🎒 Carlos Hernández</td>
-                  <td><span class="status status-active"><span class="status-dot"></span>Activo</span></td>
-                  <td style="text-align: center;">
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver">👁️</button>
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="edit" title="Editar">✏️</button>
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="delete" title="Eliminar">🗑️</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td><strong>María Torres García</strong></td>
-                  <td>maria.torres@email.com</td>
-                  <td>+52 555 444 5566</td>
-                  <td>🎒 Ana Torres</td>
-                  <td><span class="status status-inactive"><span class="status-dot"></span>Inactivo</span></td>
-                  <td style="text-align: center;">
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver">👁️</button>
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="edit" title="Editar">✏️</button>
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="delete" title="Eliminar">🗑️</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td><strong>José Luis Mendoza</strong></td>
-                  <td>jose.mendoza@email.com</td>
-                  <td>+52 555 555 6677</td>
-                  <td>🎒 Pedro Mendoza</td>
-                  <td><span class="status status-active"><span class="status-dot"></span>Activo</span></td>
-                  <td style="text-align: center;">
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="view" title="Ver">👁️</button>
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="edit" title="Editar">✏️</button>
-                    <button class="btn btn-secondary btn-icon btn-sm" data-action="delete" title="Eliminar">🗑️</button>
+              <tbody id="padresTableBody">
+                <tr id="loadingPadresRow">
+                  <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                    Cargando padres...
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
           <div class="card-footer flex-between">
-            <span class="text-small text-muted">Mostrando 5 de 156 padres</span>
+            <span class="text-small text-muted" id="padresCount">Cargando...</span>
             <div class="flex-gap">
               <button class="btn btn-secondary btn-sm">◀ Anterior</button>
               <button class="btn btn-primary btn-sm">Siguiente ▶</button>
@@ -162,6 +107,348 @@
       </div>
     </main>
   </div>
+  <!-- Modal Editar Padre -->
+  <div class="modal-overlay" id="editPadreModal">
+    <div class="modal" style="max-width: 640px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Editar Padre</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editPadreId" value="" />
+
+        <h4 style="margin: 0 0 12px 0; font-size: 14px; color: var(--text-secondary);">Datos del Padre</h4>
+        <div class="form-group">
+          <label class="form-label">Nombre</label>
+          <input class="form-input" id="editNombre" type="text" placeholder="Nombre" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Apellido Paterno</label>
+            <input class="form-input" id="editApellidoPaterno" type="text" placeholder="Apellido paterno" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Apellido Materno</label>
+            <input class="form-input" id="editApellidoMaterno" type="text" placeholder="Apellido materno" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Correo Electrónico</label>
+          <input class="form-input" id="editCorreo" type="email" placeholder="correo@ejemplo.com" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teléfono</label>
+          <input class="form-input" id="editTelefono" type="text" placeholder="+52 555 000 0000" />
+        </div>
+
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border-color);" />
+
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <h4 style="margin: 0; font-size: 14px; color: var(--text-secondary);">Hijos</h4>
+          <button class="btn btn-secondary btn-sm" id="btnAgregarHijoEdit" type="button">+ Agregar Hijo</button>
+        </div>
+        <div id="hijosEditContainer"></div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary modal-close">Cancelar</button>
+        <button class="btn btn-primary" id="btnGuardarEditPadre">Guardar Cambios</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Confirmar Eliminación -->
+  <div class="modal-overlay" id="confirmDeletePadreModal">
+    <div class="modal" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Confirmar Eliminación</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="deletePadreId" value="" />
+        <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6;">
+          ¿Estás seguro de eliminar a <strong id="deletePadreName">---</strong>?
+          Esta acción no se puede deshacer.
+        </p>
+      </div>
+      <div class="modal-footer" style="justify-content: space-between;">
+        <button class="btn btn-secondary modal-close">Cancelar</button>
+        <button class="btn btn-danger" id="btnConfirmarEliminarPadre">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="assets/js/main.js"></script>
+  <script>
+    ;(function () {
+      var tbody = document.getElementById('padresTableBody')
+      if (!tbody) return
+
+      var padresCache = []
+
+      var gradoOpciones = [
+        { value: '1° Primaria', id: 1 },
+        { value: '2° Primaria', id: 2 },
+        { value: '3° Primaria', id: 3 },
+        { value: '4° Primaria', id: 4 },
+        { value: '5° Primaria', id: 5 },
+        { value: '6° Primaria', id: 6 }
+      ]
+      var grupoOpciones = [
+        { value: 'A', id: 1 },
+        { value: 'B', id: 2 },
+        { value: 'C', id: 3 }
+      ]
+
+      function obtenerNombreCompleto(u) {
+        return (u.nombre || '') + ' ' + (u.apellido_paterno || '') + (u.apellido_materno ? ' ' + u.apellido_materno : '')
+      }
+
+      function obtenerNombreHijo(h) {
+        return (h.nombre || '') + ' ' + (h.apellido_paterno || '') + (h.apellido_materno ? ' ' + h.apellido_materno : '')
+      }
+
+      function escapeHtml(str) {
+        if (!str) return ''
+        var div = document.createElement('div')
+        div.appendChild(document.createTextNode(str))
+        return div.innerHTML
+      }
+
+      function cargarPadres() {
+        obtenerPadresConHijos().then(function (padres) {
+          padresCache = padres || []
+          renderizarPadres(padresCache)
+        }).catch(function (err) {
+          console.error('[Padres] Error al cargar:', err)
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">Error al cargar padres</td></tr>'
+        })
+      }
+
+      function renderizarPadres(padres) {
+        tbody.innerHTML = ''
+        if (!padres || padres.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">No hay padres registrados</td></tr>'
+          return
+        }
+        padres.forEach(function (p) {
+          var tr = document.createElement('tr')
+          var hijosStr = (p.hijos || []).map(function (h) {
+            return '🎒 ' + obtenerNombreHijo(h)
+          }).join(', ')
+          tr.innerHTML =
+            '<td><strong>' + escapeHtml(obtenerNombreCompleto(p)) + '</strong></td>' +
+            '<td>' + escapeHtml(p.correo || '') + '</td>' +
+            '<td>' + escapeHtml(p.telefono || '') + '</td>' +
+            '<td>' + hijosStr + '</td>' +
+            '<td><span class="status ' + (p.activo ? 'status-active' : 'status-inactive') + '"><span class="status-dot"></span>' + (p.activo ? 'Activo' : 'Inactivo') + '</span></td>' +
+            '<td style="text-align:center;">' +
+              '<button class="btn btn-secondary btn-icon btn-sm" data-edit-id="' + p.id_padre + '" title="Editar">✏️</button>' +
+              '<button class="btn btn-secondary btn-icon btn-sm" data-delete-id="' + p.id_padre + '" title="Eliminar">🗑️</button>' +
+            '</td>'
+          tbody.appendChild(tr)
+        })
+        document.getElementById('padresCount').textContent = 'Mostrando ' + padres.length + ' padre' + (padres.length !== 1 ? 's' : '')
+      }
+
+      // ---- EDIT MODAL ----
+      var editModal = document.getElementById('editPadreModal')
+      var btnGuardarEdit = document.getElementById('btnGuardarEditPadre')
+      var editandoId = null
+
+      function crearHijoEditEntry(hijo) {
+        var div = document.createElement('div')
+        div.className = 'hijo-edit-entry'
+        div.style.cssText = 'border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 12px;'
+        var idInput = '<input type="hidden" class="hijo-id" value="' + (hijo ? escapeHtml(hijo.id_alumno || '') : '') + '" />'
+
+        var nombreInput = '<div class="form-group"><label class="form-label">Nombre</label><input class="form-input hijo-nombre" type="text" value="' + (hijo ? escapeHtml(hijo.nombre || '') : '') + '" placeholder="Nombre" /></div>'
+        var apPatInput = '<div class="form-group"><label class="form-label">Ap. Paterno</label><input class="form-input hijo-apellido-paterno" type="text" value="' + (hijo ? escapeHtml(hijo.apellido_paterno || '') : '') + '" placeholder="Apellido paterno" /></div>'
+        var apMatInput = '<div class="form-group"><label class="form-label">Ap. Materno</label><input class="form-input hijo-apellido-materno" type="text" value="' + (hijo ? escapeHtml(hijo.apellido_materno || '') : '') + '" placeholder="Apellido materno" /></div>'
+
+        var parentescoOpts = ['MADRE', 'PADRE', 'TUTOR']
+        var parentescoHtml = ''
+        for (var pi = 0; pi < parentescoOpts.length; pi++) {
+          var val = parentescoOpts[pi]
+          parentescoHtml += '<option value="' + val + '"' + (hijo && hijo.parentesco === val ? ' selected' : '') + '>' + val.charAt(0) + val.slice(1).toLowerCase() + '</option>'
+        }
+        var parentescoSelect = '<div class="form-group"><label class="form-label">Parentesco</label><select class="form-select hijo-parentesco">' + parentescoHtml + '</select></div>'
+
+        var gradoHtml = ''
+        for (var gi = 0; gi < gradoOpciones.length; gi++) {
+          var g = gradoOpciones[gi]
+          gradoHtml += '<option value="' + g.value + '"' + (hijo && hijo.grado === g.value ? ' selected' : '') + '>' + g.value + '</option>'
+        }
+        var gradoSelect = '<div class="form-group"><label class="form-label">Grado</label><select class="form-select hijo-grado">' + gradoHtml + '</select></div>'
+
+        var grupoHtml = ''
+        for (var gui = 0; gui < grupoOpciones.length; gui++) {
+          var gr = grupoOpciones[gui]
+          grupoHtml += '<option value="' + gr.value + '"' + (hijo && hijo.grupo === gr.value ? ' selected' : '') + '>' + gr.value + '</option>'
+        }
+        var grupoSelect = '<div class="form-group"><label class="form-label">Grupo</label><select class="form-select hijo-grupo">' + grupoHtml + '</select></div>'
+
+        div.innerHTML = idInput +
+          '<div class="form-row">' + nombreInput + apPatInput + apMatInput + '</div>' +
+          '<div class="form-row">' + parentescoSelect + gradoSelect + grupoSelect + '</div>'
+        return div
+      }
+
+      function abrirModalEditar(id) {
+        var padre = null
+        for (var i = 0; i < padresCache.length; i++) {
+          if (padresCache[i].id_padre === id) { padre = padresCache[i]; break }
+        }
+        if (!padre) { showToast('Padre no encontrado'); return }
+
+        editandoId = id
+        document.getElementById('editPadreId').value = id
+        document.getElementById('editNombre').value = padre.nombre || ''
+        document.getElementById('editApellidoPaterno').value = padre.apellido_paterno || ''
+        document.getElementById('editApellidoMaterno').value = padre.apellido_materno || ''
+        document.getElementById('editCorreo').value = padre.correo || ''
+        document.getElementById('editTelefono').value = padre.telefono || ''
+
+        var container = document.getElementById('hijosEditContainer')
+        container.innerHTML = ''
+        if (padre.hijos && padre.hijos.length > 0) {
+          for (var hi = 0; hi < padre.hijos.length; hi++) {
+            container.appendChild(crearHijoEditEntry(padre.hijos[hi]))
+          }
+        }
+
+        editModal.classList.add('show')
+        document.body.style.overflow = 'hidden'
+      }
+
+      btnGuardarEdit.addEventListener('click', function () {
+        var nombre = document.getElementById('editNombre').value.trim()
+        var correo = document.getElementById('editCorreo').value.trim()
+        if (!nombre) { showToast('El nombre es obligatorio'); return }
+        if (!correo) { showToast('El correo es obligatorio'); return }
+
+        var datosPadre = {
+          nombre: nombre,
+          apellidoPaterno: document.getElementById('editApellidoPaterno').value.trim(),
+          apellidoMaterno: document.getElementById('editApellidoMaterno').value.trim(),
+          correo: correo,
+          telefono: document.getElementById('editTelefono').value.trim()
+        }
+
+        var gradoMap = {}
+        for (var gi = 0; gi < gradoOpciones.length; gi++) {
+          gradoMap[gradoOpciones[gi].value] = gradoOpciones[gi].id
+        }
+        var grupoMap = {}
+        for (var gui = 0; gui < grupoOpciones.length; gui++) {
+          grupoMap[grupoOpciones[gui].value] = grupoOpciones[gui].id
+        }
+
+        var hijos = []
+        var entries = document.querySelectorAll('#hijosEditContainer .hijo-edit-entry')
+        for (var ei = 0; ei < entries.length; ei++) {
+          var entry = entries[ei]
+          hijos.push({
+            id_alumno: entry.querySelector('.hijo-id').value,
+            nombre: entry.querySelector('.hijo-nombre').value.trim(),
+            apellidoPaterno: entry.querySelector('.hijo-apellido-paterno').value.trim(),
+            apellidoMaterno: entry.querySelector('.hijo-apellido-materno').value.trim(),
+            parentesco: entry.querySelector('.hijo-parentesco').value,
+            id_grado: gradoMap[entry.querySelector('.hijo-grado').value],
+            id_grupo: grupoMap[entry.querySelector('.hijo-grupo').value]
+          })
+        }
+
+        btnGuardarEdit.disabled = true
+        btnGuardarEdit.textContent = 'Guardando...'
+
+        actualizarPadreConHijos(editandoId, datosPadre, hijos).then(function (res) {
+          if (res && res.success === false) {
+            showToast(res.error || 'Error al guardar')
+            btnGuardarEdit.disabled = false
+            btnGuardarEdit.textContent = 'Guardar Cambios'
+            return
+          }
+          editModal.classList.remove('show')
+          document.body.style.overflow = ''
+          showToast('Padre actualizado exitosamente')
+          btnGuardarEdit.disabled = false
+          btnGuardarEdit.textContent = 'Guardar Cambios'
+          cargarPadres()
+        }).catch(function (err) {
+          console.error('[Padres] Error al guardar:', err)
+          showToast('Error: ' + (err.message || 'desconocido'))
+          btnGuardarEdit.disabled = false
+          btnGuardarEdit.textContent = 'Guardar Cambios'
+        })
+      })
+
+      // ---- DELETE MODAL ----
+      var deleteModal = document.getElementById('confirmDeletePadreModal')
+      var deleteName = document.getElementById('deletePadreName')
+      var btnConfirmarEliminar = document.getElementById('btnConfirmarEliminarPadre')
+
+      function abrirModalEliminar(id) {
+        var padre = null
+        for (var i = 0; i < padresCache.length; i++) {
+          if (padresCache[i].id_padre === id) { padre = padresCache[i]; break }
+        }
+        if (!padre) { showToast('Padre no encontrado'); return }
+        document.getElementById('deletePadreId').value = id
+        deleteName.textContent = obtenerNombreCompleto(padre)
+        deleteModal.classList.add('show')
+        document.body.style.overflow = 'hidden'
+      }
+
+      btnConfirmarEliminar.addEventListener('click', function () {
+        var id = document.getElementById('deletePadreId').value
+        if (!id) return
+        btnConfirmarEliminar.disabled = true
+        btnConfirmarEliminar.textContent = 'Eliminando...'
+        eliminarUsuario(id).then(function (res) {
+          if (res && res.success === false) {
+            showToast(res.error || 'Error al eliminar')
+            btnConfirmarEliminar.disabled = false
+            btnConfirmarEliminar.textContent = 'Eliminar'
+            return
+          }
+          deleteModal.classList.remove('show')
+          document.body.style.overflow = ''
+          showToast('Padre eliminado correctamente')
+          btnConfirmarEliminar.disabled = false
+          btnConfirmarEliminar.textContent = 'Eliminar'
+          cargarPadres()
+        }).catch(function (err) {
+          console.error('[Padres] Error al eliminar:', err)
+          showToast('Error: ' + (err.message || 'desconocido'))
+          btnConfirmarEliminar.disabled = false
+          btnConfirmarEliminar.textContent = 'Eliminar'
+        })
+      })
+
+      // ---- EVENT DELEGATION ----
+      tbody.addEventListener('click', function (e) {
+        var btn = e.target.closest('button')
+        if (!btn) return
+        var id
+        if (btn.hasAttribute('data-edit-id')) {
+          id = btn.getAttribute('data-edit-id')
+          abrirModalEditar(id)
+        } else if (btn.hasAttribute('data-delete-id')) {
+          id = btn.getAttribute('data-delete-id')
+          abrirModalEliminar(id)
+        }
+      })
+
+      // ---- AGREGAR HIJO EN MODAL ----
+      document.getElementById('btnAgregarHijoEdit').addEventListener('click', function () {
+        var container = document.getElementById('hijosEditContainer')
+        container.appendChild(crearHijoEditEntry(null))
+      })
+
+      // ---- LOAD ----
+      cargarPadres()
+    })()
+  </script>
 </body>
 </html>

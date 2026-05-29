@@ -88,6 +88,31 @@ async function registrarPadreConHijos(datosPadre, hijos) {
   return data
 }
 
+async function obtenerPadresConHijos() {
+  console.log('[Supabase] Obteniendo padres con hijos...')
+  const { data, error } = await window.__sbClient.rpc('obtener_padres_con_hijos')
+  if (error) throw error
+  console.log('[Supabase] Padres obtenidos:', data?.length || 0)
+  return data || []
+}
+
+async function actualizarPadreConHijos(idPadre, datosPadre, hijos) {
+  console.log('[Supabase] Actualizando padre:', idPadre)
+  const { data, error } = await window.__sbClient.rpc('actualizar_padre_con_hijos', {
+    p_id_padre: idPadre,
+    p_nombre: datosPadre.nombre,
+    p_apellido_paterno: datosPadre.apellidoPaterno || null,
+    p_apellido_materno: datosPadre.apellidoMaterno || null,
+    p_correo: datosPadre.correo,
+    p_telefono: datosPadre.telefono || null,
+    p_direccion: datosPadre.direccion || null,
+    p_hijos: hijos
+  })
+  if (error) throw error
+  console.log('[Supabase] Respuesta actualización padre:', data)
+  return data
+}
+
 async function obtenerEventos(mes, anio) {
   console.log('[Supabase] Obteniendo eventos para:', mes, anio)
   const { data, error } = await window.__sbClient.rpc('obtener_eventos', {

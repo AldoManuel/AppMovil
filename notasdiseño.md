@@ -8,7 +8,7 @@ retirar la seccion que muestra a los alumnos innecesario ya que visualmente la s
 
 # Seccion Docente, Padre y Usuarios
 
-Retirar boton Agregar Docente, Agregar Padre, Agregar Usuario.
+Retirar boton Agregar Docente, Agregar Padre.
 
 # Botones de "Ver"
 

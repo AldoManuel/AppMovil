@@ -80,6 +80,7 @@ CREATE TABLE public.padre (
 -- 3.4 Alumno — extiende usuario con rol ALUMNO (sin login)
 CREATE TABLE public.alumno (
   id_alumno UUID PRIMARY KEY REFERENCES public.usuario(id_usuario),
+  id_grado INTEGER REFERENCES public.grado(id_grado),
   id_grupo INTEGER REFERENCES public.grupo(id_grupo),
   promedio DECIMAL(4,2) DEFAULT 0.00
 );
@@ -172,6 +173,12 @@ CREATE TABLE public.configuracion (
   formato_fecha VARCHAR(20) DEFAULT 'DD/MM/AAAA',
   zona_horaria VARCHAR(50) DEFAULT 'America/Mexico_City'
 );
+
+-- ==========================================================
+-- 6.1 Migración para tabla alumno (agregar id_grado si no existe)
+-- ==========================================================
+
+ALTER TABLE public.alumno ADD COLUMN IF NOT EXISTS id_grado INTEGER REFERENCES public.grado(id_grado);
 
 -- ==========================================================
 -- 7. ÍNDICES
@@ -568,8 +575,8 @@ BEGIN
     RETURNING id_usuario INTO v_id_alumno;
 
     -- Crear registro en tabla alumno
-    INSERT INTO public.alumno (id_alumno, id_grupo)
-    VALUES (v_id_alumno, v_id_grupo);
+    INSERT INTO public.alumno (id_alumno, id_grado, id_grupo)
+    VALUES (v_id_alumno, v_id_grado, v_id_grupo);
 
     -- Crear relación alumno-padre
     INSERT INTO public.alumno_padre (id_alumno, id_padre, parentesco)
@@ -641,7 +648,114 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+CREATE OR REPLACE FUNCTION obtener_padres_con_hijos()
+RETURNS JSON AS $$
+DECLARE
+  v_result JSON;
+BEGIN
+  SELECT json_agg(json_build_object(
+    'id_padre', u.id_usuario,
+    'nombre', u.nombre,
+    'apellido_paterno', u.apellido_paterno,
+    'apellido_materno', u.apellido_materno,
+    'correo', u.correo,
+    'telefono', u.telefono,
+    'activo', u.activo,
+    'direccion', p.direccion,
+    'hijos', COALESCE((
+      SELECT json_agg(json_build_object(
+        'id_alumno', au.id_usuario,
+        'nombre', au.nombre,
+        'apellido_paterno', au.apellido_paterno,
+        'apellido_materno', au.apellido_materno,
+        'correo', au.correo,
+        'parentesco', ap.parentesco,
+        'grado', g.nombre,
+        'id_grado', g.id_grado,
+        'grupo', gp.nombre,
+        'id_grupo', gp.id_grupo
+      ) ORDER BY au.nombre)
+      FROM public.alumno_padre ap
+      JOIN public.alumno a ON a.id_alumno = ap.id_alumno
+      JOIN public.usuario au ON au.id_usuario = a.id_alumno
+      LEFT JOIN public.grado g ON g.id_grado = a.id_grado
+      LEFT JOIN public.grupo gp ON gp.id_grupo = a.id_grupo
+      WHERE ap.id_padre = u.id_usuario AND au.activo = true
+    ), '[]'::json)
+  ) ORDER BY u.nombre, u.apellido_paterno)
+  INTO v_result
+  FROM public.usuario u
+  JOIN public.padre p ON p.id_padre = u.id_usuario
+  WHERE u.rol = 'PADRE' AND u.activo = true;
+
+  RETURN COALESCE(v_result, '[]'::json);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION actualizar_padre_con_hijos(
+  p_id_padre UUID,
+  p_nombre VARCHAR,
+  p_apellido_paterno VARCHAR,
+  p_apellido_materno VARCHAR,
+  p_correo VARCHAR,
+  p_telefono VARCHAR,
+  p_direccion VARCHAR,
+  p_hijos JSON
+) RETURNS JSON AS $$
+DECLARE
+  v_hijo JSON;
+  v_existe_correo BOOLEAN;
+BEGIN
+  -- Verificar si el correo ya está en uso por otro usuario
+  SELECT EXISTS(SELECT 1 FROM public.usuario WHERE correo = p_correo AND id_usuario != p_id_padre) INTO v_existe_correo;
+  IF v_existe_correo THEN
+    RETURN json_build_object('success', false, 'error', 'El correo ya está en uso por otro usuario');
+  END IF;
+
+  -- Actualizar datos del padre en tabla usuario
+  UPDATE public.usuario
+  SET nombre = p_nombre,
+      apellido_paterno = p_apellido_paterno,
+      apellido_materno = p_apellido_materno,
+      correo = p_correo,
+      telefono = p_telefono
+  WHERE id_usuario = p_id_padre;
+
+  -- Actualizar datos del padre en tabla padre
+  UPDATE public.padre
+  SET direccion = COALESCE(p_direccion, direccion)
+  WHERE id_padre = p_id_padre;
+
+  -- Procesar cada hijo
+  FOR v_hijo IN SELECT * FROM json_array_elements(p_hijos)
+  LOOP
+    -- Actualizar datos del alumno en tabla usuario
+    UPDATE public.usuario
+    SET nombre = v_hijo->>'nombre',
+        apellido_paterno = v_hijo->>'apellidoPaterno',
+        apellido_materno = v_hijo->>'apellidoMaterno'
+    WHERE id_usuario = (v_hijo->>'id_alumno')::UUID;
+
+    -- Actualizar grado y grupo en tabla alumno
+    UPDATE public.alumno
+    SET id_grado = (v_hijo->>'id_grado')::INTEGER,
+        id_grupo = (v_hijo->>'id_grupo')::INTEGER
+    WHERE id_alumno = (v_hijo->>'id_alumno')::UUID;
+
+    -- Actualizar parentesco en tabla alumno_padre
+    UPDATE public.alumno_padre
+    SET parentesco = v_hijo->>'parentesco'
+    WHERE id_alumno = (v_hijo->>'id_alumno')::UUID
+      AND id_padre = p_id_padre;
+  END LOOP;
+
+  RETURN json_build_object('success', true);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 GRANT EXECUTE ON FUNCTION registrar_padre_con_hijos TO anon;
+GRANT EXECUTE ON FUNCTION obtener_padres_con_hijos TO anon;
+GRANT EXECUTE ON FUNCTION actualizar_padre_con_hijos TO anon;
 GRANT EXECUTE ON FUNCTION obtener_eventos TO anon;
 GRANT EXECUTE ON FUNCTION crear_evento TO anon;
 GRANT EXECUTE ON FUNCTION eliminar_evento TO anon;
