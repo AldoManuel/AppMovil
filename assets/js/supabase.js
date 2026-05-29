@@ -81,7 +81,7 @@ async function registrarPadreConHijos(datosPadre, hijos) {
     p_correo: datosPadre.correo,
     p_telefono: datosPadre.telefono || null,
     p_contrasena: datosPadre.contrasena,
-    p_hijos: JSON.stringify(hijos)
+    p_hijos: hijos
   })
   if (error) throw error
   console.log('[Supabase] Respuesta registro padre:', data)
