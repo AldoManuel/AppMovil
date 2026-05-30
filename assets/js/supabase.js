@@ -269,3 +269,59 @@ async function obtenerConteoAlumnosPorDocente() {
   if (error) throw error
   return data || []
 }
+
+async function obtenerNotificaciones() {
+  console.log('[Supabase] Obteniendo notificaciones...')
+  try {
+    const [eventos, usuarios] = await Promise.all([
+      window.__sbClient.rpc('obtener_eventos', { p_mes: new Date().getMonth() + 1, p_anio: new Date().getFullYear() }),
+      window.__sbClient.rpc('obtener_usuarios')
+    ])
+    if (eventos.error) throw eventos.error
+    if (usuarios.error) throw usuarios.error
+
+    const hoy = new Date()
+    const notificaciones = []
+
+    const eventosData = eventos.data || []
+    eventosData.forEach(function (ev) {
+      const fechaEv = new Date(ev.fecha + 'T00:00:00')
+      notificaciones.push({
+        id: 'ev_' + ev.id_evento,
+        titulo: ev.titulo,
+        descripcion: ev.descripcion || '',
+        tipo: 'evento',
+        subtipo: ev.tipo || 'EVENTO_ESCOLAR',
+        fecha: ev.fecha,
+        hora: ev.hora || null,
+        leida: false,
+        color: ev.color || 'event-blue',
+        timestamp: fechaEv
+      })
+    })
+
+    const usuariosData = usuarios.data || []
+    usuariosData.forEach(function (u) {
+      notificaciones.push({
+        id: 'usr_' + u.id_usuario,
+        titulo: (u.nombre || '') + (u.apellido_paterno ? ' ' + u.apellido_paterno : ''),
+        descripcion: u.rol === 'DOCENTE' ? 'Nuevo docente registrado' : u.rol === 'PADRE' ? 'Nuevo padre registrado' : 'Nuevo usuario registrado',
+        tipo: 'usuario',
+        subtipo: u.rol,
+        fecha: u.fecha_creacion ? u.fecha_creacion.split('T')[0] : '',
+        hora: null,
+        leida: false,
+        color: u.rol === 'DOCENTE' ? 'event-blue' : u.rol === 'PADRE' ? 'event-yellow' : 'event-green',
+        timestamp: u.fecha_creacion ? new Date(u.fecha_creacion) : hoy
+      })
+    })
+
+    notificaciones.sort(function (a, b) { return b.timestamp - a.timestamp })
+
+    console.log('[Supabase] Notificaciones obtenidas:', notificaciones.length)
+    return notificaciones
+  } catch (err) {
+    console.error('[Supabase] Error obteniendo notificaciones:', err)
+    return []
+  }
+}

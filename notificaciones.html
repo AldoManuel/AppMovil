@@ -24,7 +24,7 @@
           <p class="nav-label">Herramientas</p>
           <a class="nav-item" data-page="calendario.html" href="calendario.html"><span class="nav-icon">📅</span><span class="nav-text">Calendario</span></a>
           <a class="nav-item active" data-page="notificaciones.html" href="notificaciones.html"><span class="nav-icon">🔔</span><span class="nav-text">Notificaciones</span><span class="nav-badge">5</span></a>
-          <a class="nav-item" data-page="reportes.html" href="reportes.html"><span class="nav-icon">📈</span><span class="nav-text">Reportes</span></a>
+
         </div>
         <div class="nav-section"><p class="nav-label">Sistema</p><a class="nav-item" data-page="configuracion.html" href="configuracion.html"><span class="nav-icon">⚙️</span><span class="nav-text">Configuración</span></a></div>
       </nav>
@@ -62,11 +62,11 @@
         </div>
 
         <!-- Alertas superiores -->
-        <div class="alert alert-info animate-slide-up">
+        <div class="alert alert-info animate-slide-up" id="alertInfo">
           <span class="alert-icon">ℹ️</span>
           <div class="alert-content">
             <div class="alert-title">Centro de Notificaciones</div>
-            Tienes <strong>5 notificaciones sin leer</strong>. Revisa las novedades del sistema.
+            <span id="alertText">Cargando notificaciones...</span>
           </div>
           <span class="alert-close">&times;</span>
         </div>
@@ -74,49 +74,144 @@
         <!-- Filtros -->
         <div class="search-bar" style="margin-bottom: 20px;">
           <div class="filter-group">
-            <button class="btn btn-primary btn-sm">Todas</button>
-            <button class="btn btn-secondary btn-sm" data-toast="Filtrando no leídas">No leídas</button>
-            <button class="btn btn-secondary btn-sm" data-toast="Filtrando por sistema">Sistema</button>
+            <button class="btn btn-primary btn-sm" data-filter="todas" id="filterTodas">Todas</button>
+            <button class="btn btn-secondary btn-sm" data-filter="no-leidas" id="filterNoLeidas">No leídas</button>
+            <button class="btn btn-secondary btn-sm" data-filter="eventos" id="filterEventos">Eventos</button>
+            <button class="btn btn-secondary btn-sm" data-filter="usuarios" id="filterUsuarios">Usuarios</button>
           </div>
         </div>
 
         <!-- Lista de notificaciones -->
-        <div class="notification-list">
-          <div class="notification-item unread">
-            <div class="notification-icon" style="background: #eef2ff; color: #4f46e5;">👤</div>
-            <div class="notification-content">
-              <div class="notification-text"><strong>Nuevo registro</strong> — El padre Roberto Hernández se registró en la plataforma</div>
-              <div class="notification-time">Hace 1 día</div>
-            </div>
-            </div>
-
-          <div class="notification-item">
-            <div class="notification-icon" style="background: var(--primary-light); color: var(--primary);">📚</div>
-            <div class="notification-content">
-              <div class="notification-text"><strong>Actualización del sistema</strong> — Nueva versión disponible con mejoras en el rendimiento general</div>
-              <div class="notification-time">Hace 3 días</div>
-            </div>
-          </div>
-
-          <div class="notification-item">
-            <div class="notification-icon" style="background: var(--secondary-light); color: var(--secondary);">📊</div>
-            <div class="notification-content">
-              <div class="notification-text"><strong>Reporte disponible</strong> — El reporte de rendimiento mensual ya está listo para descargar</div>
-              <div class="notification-time">Hace 5 días</div>
-            </div>
-          </div>
-
-          <div class="notification-item">
-            <div class="notification-icon" style="background: var(--warning-light); color: #d97706;">⚙️</div>
-            <div class="notification-content">
-              <div class="notification-text"><strong>Mantenimiento programado</strong> — El sistema estará en mantenimiento el sábado de 2:00 a 4:00 AM</div>
-              <div class="notification-time">Hace 1 semana</div>
-            </div>
-          </div>
+        <div class="notification-list" id="notificacionesContainer">
+          <div class="text-small text-muted" style="padding: 20px; text-align: center;">Cargando notificaciones...</div>
         </div>
       </div>
     </main>
   </div>
   <script src="assets/js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+      var TYPE_ICON = { EVENTO_ESCOLAR: '📅', EXAMEN: '📚', PROYECTO: '📝', FECHA_IMPORTANTE: '⚠️' }
+      var ROLE_ICON = { ADMIN: '👤', DOCENTE: '👨‍🏫', PADRE: '👪' }
+      var ROLE_LABEL = { ADMIN: 'Administrador', DOCENTE: 'Docente', PADRE: 'Padre de Familia' }
+
+      var todasNotificaciones = []
+      var filtroActual = 'todas'
+
+      function timeAgo(date) {
+        if (!date) return ''
+        var now = new Date()
+        var diffMs = now - date
+        var diffSec = Math.floor(diffMs / 1000)
+        if (diffSec < 60) return 'Hace unos segundos'
+        var diffMin = Math.floor(diffSec / 60)
+        if (diffMin < 60) return 'Hace ' + diffMin + ' min'
+        var diffHour = Math.floor(diffMin / 60)
+        if (diffHour < 24) return 'Hace ' + diffHour + 'h'
+        var diffDay = Math.floor(diffHour / 24)
+        if (diffDay === 1) return 'Ayer'
+        if (diffDay < 7) return 'Hace ' + diffDay + ' días'
+        if (diffDay < 30) return 'Hace ' + Math.floor(diffDay / 7) + ' sem'
+        return date.getDate() + ' de ' + MONTHS[date.getMonth()]
+      }
+
+      function isUnread(fecha) {
+        if (!fecha) return false
+        var now = new Date()
+        var diffDays = (now - fecha) / (1000 * 60 * 60 * 24)
+        return diffDays <= 7
+      }
+
+      function escapeHtml(str) {
+        if (!str) return ''
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+      }
+
+      function renderNotificaciones() {
+        var container = document.getElementById('notificacionesContainer')
+        var filtered = todasNotificaciones
+
+        if (filtroActual === 'no-leidas') {
+          filtered = todasNotificaciones.filter(function (n) { return !n.leida && isUnread(n.timestamp) })
+        } else if (filtroActual === 'eventos') {
+          filtered = todasNotificaciones.filter(function (n) { return n.tipo === 'evento' })
+        } else if (filtroActual === 'usuarios') {
+          filtered = todasNotificaciones.filter(function (n) { return n.tipo === 'usuario' })
+        }
+
+        if (!filtered.length) {
+          container.innerHTML = '<div class="text-small text-muted" style="padding: 20px; text-align: center;">No hay notificaciones</div>'
+          updateAlert(0)
+          return
+        }
+
+        var noLeidas = filtered.filter(function (n) { return isUnread(n.timestamp) }).length
+        var html = ''
+        filtered.forEach(function (n) {
+          var icon, bgColor, textColor
+          if (n.tipo === 'evento') {
+            icon = TYPE_ICON[n.subtipo] || '📌'
+            bgColor = '#eef2ff'
+            textColor = '#4f46e5'
+          } else {
+            icon = ROLE_ICON[n.subtipo] || '👤'
+            bgColor = 'var(--warning-light)'
+            textColor = '#d97706'
+          }
+          var unreadClass = isUnread(n.timestamp) ? ' unread' : ''
+          var titulo = n.tipo === 'evento' ? n.titulo : (n.subtipo === 'DOCENTE' ? 'Nuevo docente' : n.subtipo === 'PADRE' ? 'Nuevo padre' : 'Nuevo usuario')
+          var desc = n.tipo === 'evento' ? (n.descripcion || '') : (ROLE_LABEL[n.subtipo] || 'Usuario') + ' registrado: ' + escapeHtml(n.titulo)
+
+          html += '<div class="notification-item' + unreadClass + '">'
+          html += '<div class="notification-icon" style="background: ' + bgColor + '; color: ' + textColor + ';">' + icon + '</div>'
+          html += '<div class="notification-content">'
+          html += '<div class="notification-text"><strong>' + escapeHtml(titulo) + '</strong> — ' + escapeHtml(desc) + '</div>'
+          html += '<div class="notification-time">' + timeAgo(n.timestamp) + '</div>'
+          html += '</div></div>'
+        })
+        container.innerHTML = html
+        updateAlert(noLeidas)
+      }
+
+      function updateAlert(noLeidas) {
+        var alertText = document.getElementById('alertText')
+        if (noLeidas > 0) {
+          alertText.innerHTML = 'Tienes <strong>' + noLeidas + ' notificaciones sin leer</strong>. Revisa las novedades del sistema.'
+        } else {
+          alertText.textContent = 'No tienes notificaciones pendientes. Todo está al día.'
+        }
+        var badge = document.querySelector('.nav-item.active .nav-badge')
+        if (badge) badge.textContent = noLeidas
+      }
+
+      async function loadNotificaciones() {
+        var container = document.getElementById('notificacionesContainer')
+        container.classList.add('refreshing')
+        try {
+          todasNotificaciones = await obtenerNotificaciones()
+        } catch (err) {
+          console.error('[Notificaciones] Error:', err)
+          todasNotificaciones = []
+        }
+        renderNotificaciones()
+        container.classList.remove('refreshing')
+      }
+
+      document.querySelectorAll('[data-filter]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          filtroActual = this.getAttribute('data-filter')
+          document.querySelectorAll('[data-filter]').forEach(function (b) {
+            b.className = b.className.replace('btn-primary', 'btn-secondary')
+          })
+          this.className = this.className.replace('btn-secondary', 'btn-primary')
+          renderNotificaciones()
+        })
+      })
+
+      loadNotificaciones()
+      setInterval(loadNotificaciones, 30000)
+    })
+  </script>
 </body>
 </html>

@@ -24,7 +24,7 @@
           <p class="nav-label">Herramientas</p>
           <a class="nav-item" data-page="calendario.html" href="calendario.html"><span class="nav-icon">📅</span><span class="nav-text">Calendario</span></a>
           <a class="nav-item" data-page="notificaciones.html" href="notificaciones.html"><span class="nav-icon">🔔</span><span class="nav-text">Notificaciones</span><span class="nav-badge">5</span></a>
-          <a class="nav-item" data-page="reportes.html" href="reportes.html"><span class="nav-icon">📈</span><span class="nav-text">Reportes</span></a>
+
         </div>
         <div class="nav-section"><p class="nav-label">Sistema</p><a class="nav-item" data-page="configuracion.html" href="configuracion.html"><span class="nav-icon">⚙️</span><span class="nav-text">Configuración</span></a></div>
       </nav>
@@ -74,7 +74,7 @@
 
   <!-- ===== MODAL EDITAR DOCENTE ===== -->
   <div class="modal-overlay" id="modalEditarDocente">
-    <div class="modal" style="max-width: 700px;">
+    <div class="modal" style="max-width: 800px;">
       <div class="modal-header">
         <h2 class="modal-title" id="editModalTitle">Editar Asignaciones</h2>
         <button class="modal-close" data-modal="modalEditarDocente">&times;</button>
@@ -98,6 +98,9 @@
             <div id="alumnosContent"></div>
           </div>
         </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="cerrarModalEditar()">Cancelar</button>
       </div>
     </div>
   </div>
@@ -282,23 +285,23 @@
               '<td>' + escapeHtml(a.grupo) + '</td>' +
               '<td>' + escapeHtml(a.materia) + '</td>' +
               '<td>' + (a.total_alumnos || 0) + '</td>' +
-              '<td><button class="btn btn-danger btn-sm" data-rm-asignacion="' + a.id_asignacion + '" data-tipo="GRUPO">✕</button></td>' +
+              '<td class="text-nowrap"><button class="btn btn-danger btn-sm" data-rm-asignacion="' + a.id_asignacion + '" data-tipo="GRUPO">✕</button></td>' +
             '</tr>'
           })
 
           var html =
             '<p style="margin-bottom:8px;color:var(--text-muted);">Total: <strong>' + totalAlumnos + '</strong> alumnos en ' + asignaciones.length + ' grupo(s)</p>' +
             '<div class="table-container" style="margin-bottom:16px;">' +
-              '<table><thead><tr><th>Grado</th><th>Grupo</th><th>Materia</th><th>Alumnos</th><th>Acción</th></tr></thead><tbody>' +
+              '<table class="table"><thead><tr><th>Grado</th><th>Grupo</th><th>Materia</th><th>Alumnos</th><th class="text-nowrap">Acción</th></tr></thead><tbody>' +
                 (rows || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">Sin asignaciones de grupo</td></tr>') +
               '</tbody></table>' +
             '</div>' +
             '<div class="card" style="padding:16px;">' +
               '<h4 style="margin-bottom:12px;">Agregar asignación por grupo</h4>' +
-              '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
-                '<select id="selGrado" class="form-select" style="flex:1;min-width:140px;"><option value="">Grado</option></select>' +
-                '<select id="selGrupo" class="form-select" style="flex:0 0 100px;"><option value="">Grupo</option></select>' +
-                '<select id="selMateriaAsig" class="form-select" style="flex:1;min-width:140px;"><option value="">Materia</option></select>' +
+              '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;">' +
+                '<select id="selGrado" class="form-select"><option value="">Grado</option></select>' +
+                '<select id="selGrupo" class="form-select"><option value="">Grupo</option></select>' +
+                '<select id="selMateriaAsig" class="form-select"><option value="">Materia</option></select>' +
                 '<button class="btn btn-primary" id="btnAgregarAsignacionGrupo">Asignar</button>' +
               '</div>' +
             '</div>'
@@ -306,7 +309,8 @@
           content.innerHTML = html
           cargarSelectGrados()
           cargarSelectGrupos()
-          cargarSelectMateriasAsignacion()
+          var idsMateriasDocente = (docente.materias || []).map(function (m) { return m.id_materia })
+          cargarSelectMateriasAsignacion(idsMateriasDocente)
           content.querySelectorAll('[data-rm-asignacion]').forEach(function (btn) {
             btn.addEventListener('click', function () {
               eliminarAsignacion(parseInt(this.getAttribute('data-rm-asignacion')), this.getAttribute('data-tipo'), docente)
@@ -343,11 +347,12 @@
         }).catch(function (err) { console.error('[Select] Error grupos:', err) })
       }
 
-      function cargarSelectMateriasAsignacion() {
+      function cargarSelectMateriasAsignacion(materiasDocenteIds) {
         var sel = document.getElementById('selMateriaAsig')
         if (!sel) return
         sel.innerHTML = '<option value="">Materia</option>'
         materiasCache.forEach(function (m) {
+          if (materiasDocenteIds && materiasDocenteIds.indexOf(m.id_materia) === -1) return
           sel.innerHTML += '<option value="' + m.id_materia + '">' + escapeHtml(m.nombre) + '</option>'
         })
       }
@@ -394,14 +399,14 @@
               '<td>' + escapeHtml(a.nombre_alumno) + '</td>' +
               '<td>' + escapeHtml(a.grado || '-') + ' ' + escapeHtml(a.grupo || '-') + '</td>' +
               '<td>' + escapeHtml(a.materia) + '</td>' +
-              '<td><button class="btn btn-danger btn-sm" data-rm-asignacion="' + a.id_asignacion + '" data-tipo="ALUMNO">✕</button></td>' +
+              '<td class="text-nowrap"><button class="btn btn-danger btn-sm" data-rm-asignacion="' + a.id_asignacion + '" data-tipo="ALUMNO">✕</button></td>' +
             '</tr>'
           })
 
           var html =
             '<p style="margin-bottom:8px;color:var(--text-muted);">Total: <strong>' + asignaciones.length + '</strong> alumno(s) asignados</p>' +
             '<div class="table-container" style="margin-bottom:16px;">' +
-              '<table><thead><tr><th>Alumno</th><th>Grado/Grupo</th><th>Materia</th><th>Acción</th></tr></thead><tbody>' +
+              '<table class="table"><thead><tr><th>Alumno</th><th>Grado/Grupo</th><th>Materia</th><th class="text-nowrap">Acción</th></tr></thead><tbody>' +
                 (rows || '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);">Sin alumnos asignados</td></tr>') +
               '</tbody></table>' +
             '</div>' +
@@ -411,13 +416,14 @@
                 '<select id="selMateriaManual" class="form-select" style="flex:1;min-width:160px;"><option value="">Seleccionar materia</option></select>' +
                 '<input type="text" id="txtBuscarAlumno" class="form-input" placeholder="Buscar alumno..." style="flex:1;min-width:160px;">' +
               '</div>' +
-              '<div id="listaAlumnosSeleccion" style="max-height:200px;overflow-y:auto;border:1px solid var(--border-color);border-radius:6px;padding:8px;margin-bottom:12px;"></div>' +
+              '<div id="listaAlumnosSeleccion" class="table-container" style="max-height:220px;overflow-y:auto;margin-bottom:12px;"></div>' +
               '<button class="btn btn-primary" id="btnAsignarAlumnosSeleccionados">Asignar Seleccionados</button>' +
             '</div>'
 
           content.innerHTML = html
-          cargarSelectMateriasManual()
-          cargarListaAlumnos(docente)
+          var idsMateriasDocente = (docente.materias || []).map(function (m) { return m.id_materia })
+          cargarSelectMateriasManual(idsMateriasDocente)
+          cargarListaAlumnos(docente, asignaciones)
 
           content.querySelectorAll('[data-rm-asignacion]').forEach(function (btn) {
             btn.addEventListener('click', function () {
@@ -441,20 +447,24 @@
       }
 
       var todosAlumnos = []
+      var alumnosAsignadosIds = new Set()
 
-      function cargarSelectMateriasManual() {
+      function cargarSelectMateriasManual(materiasDocenteIds) {
         var sel = document.getElementById('selMateriaManual')
         if (!sel) return
         sel.innerHTML = '<option value="">Seleccionar materia</option>'
         materiasCache.forEach(function (m) {
+          if (materiasDocenteIds && materiasDocenteIds.indexOf(m.id_materia) === -1) return
           sel.innerHTML += '<option value="' + m.id_materia + '">' + escapeHtml(m.nombre) + '</option>'
         })
       }
 
-      function cargarListaAlumnos(docente) {
+      function cargarListaAlumnos(docente, asignaciones) {
         obtenerAlumnos().then(function (alumnos) {
           todosAlumnos = alumnos || []
-          renderizarListaAlumnos(todosAlumnos)
+          alumnosAsignadosIds = new Set((asignaciones || []).map(function (a) { return a.id_alumno }))
+          var disponibles = todosAlumnos.filter(function (a) { return !alumnosAsignadosIds.has(a.id_alumno) })
+          renderizarListaAlumnos(disponibles)
         }).catch(function (err) {
           console.error('[Alumnos] Error:', err)
         })
@@ -467,24 +477,24 @@
           container.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;">No hay alumnos disponibles</p>'
           return
         }
-        var html = ''
+        var html = '<table class="table"><thead><tr><th style="width:40px;">Sel.</th><th>Alumno</th><th>Grado/Grupo</th></tr></thead><tbody>'
         alumnos.forEach(function (a) {
-          html += '<label style="display:flex;align-items:center;gap:8px;padding:4px 6px;border-radius:4px;cursor:pointer;">' +
-            '<input type="checkbox" class="alumno-checkbox" value="' + a.id_alumno + '">' +
-            escapeHtml(a.nombre + ' ' + (a.apellido_paterno || '')) +
-            ' <span style="color:var(--text-muted);font-size:12px;">(' + escapeHtml(a.grado || '-') + ' ' + escapeHtml(a.grupo || '-') + ')</span>' +
-          '</label>'
+          html += '<tr><td><input type="checkbox" class="alumno-checkbox" value="' + a.id_alumno + '"></td>' +
+            '<td>' + escapeHtml(a.nombre + ' ' + (a.apellido_paterno || '')) + '</td>' +
+            '<td>' + escapeHtml(a.grado || '-') + ' ' + escapeHtml(a.grupo || '-') + '</td></tr>'
         })
+        html += '</tbody></table>'
         container.innerHTML = html
       }
 
       function filtrarListaAlumnos(query) {
+        var disponibles = todosAlumnos.filter(function (a) { return !alumnosAsignadosIds.has(a.id_alumno) })
         if (!query) {
-          renderizarListaAlumnos(todosAlumnos)
+          renderizarListaAlumnos(disponibles)
           return
         }
         var q = query.toLowerCase()
-        var filtrados = todosAlumnos.filter(function (a) {
+        var filtrados = disponibles.filter(function (a) {
           return (a.nombre + ' ' + (a.apellido_paterno || '') + ' ' + (a.apellido_materno || '')).toLowerCase().indexOf(q) !== -1
         })
         renderizarListaAlumnos(filtrados)

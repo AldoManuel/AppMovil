@@ -1013,6 +1013,15 @@ input, select, textarea {
   color: var(--text-primary);
 }
 
+.modal-footer .modal-close {
+  width: auto;
+  height: auto;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  font-size: 14px;
+  padding: 10px 20px;
+}
+
 .modal-body {
   padding: 24px;
 }
@@ -1314,6 +1323,11 @@ input, select, textarea {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.notification-list.refreshing {
+  opacity: 0.6;
+  transition: opacity 0.2s;
 }
 
 .notification-item {
@@ -1842,6 +1856,16 @@ input, select, textarea {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.text-nowrap {
+  white-space: nowrap;
+}
+
+.modal-body .table th,
+.modal-body .table td {
+  padding: 10px 12px;
+  font-size: 13px;
 }
 
 .mt-1 { margin-top: 8px; }
