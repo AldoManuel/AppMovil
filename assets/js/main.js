@@ -308,34 +308,6 @@ document.addEventListener('DOMContentLoaded', function () {
   window.showToast = showToast;
 
   /* ==========================================================
-     TOOLBAR DE ACCIONES (Editar, Eliminar, Ver)
-     ========================================================== */
-  document.querySelectorAll('[data-action="edit"], [data-action="delete"], [data-action="view"]').forEach(function (btn) {
-    btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      const action = this.getAttribute('data-action');
-      const actionLabels = {
-        edit: 'Editar',
-        delete: 'Eliminar',
-        view: 'Ver'
-      };
-      showToast(`Acción "${actionLabels[action] || action}" simulada correctamente`);
-    });
-  });
-
-  /* ==========================================================
-     SWITCH TAB LOGIN (desde registro)
-     ========================================================== */
-  const switchToLogin = document.querySelector('.switch-to-login');
-  if (switchToLogin) {
-    switchToLogin.addEventListener('click', function (e) {
-      e.preventDefault();
-      const loginTab = document.querySelector('[data-tab="loginTab"]');
-      if (loginTab) loginTab.click();
-    });
-  }
-
-  /* ==========================================================
      BOTÓN AGREGAR (Simulado)
      ========================================================== */
   document.querySelectorAll('[data-action="add"]').forEach(function (btn) {

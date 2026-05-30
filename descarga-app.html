@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registro Exitoso — Sistema de Gestión Educativa</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body class="login-page">
+
+  <div class="login-left">
+    <div class="login-container">
+
+      <div class="login-logo">
+        <div class="login-logo-icon">📚</div>
+        <span class="login-logo-text">TaskTracker</span>
+      </div>
+
+      <div id="successContainer" style="text-align: center;">
+        <div style="font-size: 56px; margin-bottom: 16px;">✅</div>
+        <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 8px; color: var(--text-primary);">¡Registro Exitoso!</h2>
+        <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.6;" id="mensajeExito">
+          Tu cuenta ha sido creada correctamente.
+        </p>
+
+        <div id="downloadSection" style="background: var(--bg-secondary); border-radius: 12px; padding: 20px; margin-bottom: 24px; border: 1px solid var(--border-color);">
+          <div style="font-size: 40px; margin-bottom: 12px;" id="iconoDescarga">📲</div>
+          <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">
+            Link para descargar su app
+          </h3>
+          <a href="#" id="btnDescarga" class="btn btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;" onclick="showToast('Enlace de descarga disponible próximamente')">
+            📲 Descargar App
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <div class="login-right">
+    <div class="login-illustration">
+      <div class="login-illustration-icon">🎓</div>
+      <h2>Sistema de Gestión Educativa</h2>
+      <p>
+        Plataforma administrativa para docentes, padres y administración escolar.
+        Gestiona calificaciones y comunicación educativa.
+      </p>
+    </div>
+  </div>
+
+  <script src="assets/js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var params = new URLSearchParams(window.location.search)
+      var rol = params.get('rol') || ''
+      var icono = document.getElementById('iconoDescarga')
+      var btnDescarga = document.getElementById('btnDescarga')
+
+      if (rol === 'DOCENTE') {
+        icono.textContent = '👨‍🏫'
+        btnDescarga.innerHTML = '📲 Descargar App Docente'
+      } else if (rol === 'PADRE') {
+        icono.textContent = '👪'
+        btnDescarga.innerHTML = '📲 Descargar App Padres de Familia'
+      }
+    })
+  </script>
+</body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registrarse — Sistema de Gestión Educativa</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase.js"></script>
+</head>
+<body class="login-page">
+
+  <div class="login-left">
+    <div class="login-container">
+
+      <div class="login-logo">
+        <div class="login-logo-icon">📚</div>
+        <span class="login-logo-text">TaskTracker</span>
+      </div>
+
+      <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 4px; color: var(--text-primary);">Crear Cuenta</h2>
+      <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 24px;">Regístrate como docente o padre de familia</p>
+
+      <form class="login-form" id="registerForm">
+        <div class="form-group">
+          <label class="form-label" for="regNombre">Nombre</label>
+          <input class="form-input" type="text" id="regNombre" placeholder="Tu nombre" autocomplete="name" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="regApPat">Apellido Paterno</label>
+          <input class="form-input" type="text" id="regApPat" placeholder="Apellido paterno" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="regApMat">Apellido Materno</label>
+          <input class="form-input" type="text" id="regApMat" placeholder="Apellido materno" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="regCorreo">Correo electrónico</label>
+          <input class="form-input" type="email" id="regCorreo" placeholder="correo@institucion.edu" autocomplete="email" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="regTelefono">Teléfono</label>
+          <input class="form-input" type="tel" id="regTelefono" placeholder="+52 555 123 4567" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="regRol">Rol</label>
+          <select class="form-input" id="regRol" required>
+            <option value="">Selecciona un rol</option>
+            <option value="DOCENTE">Docente</option>
+            <option value="PADRE">Padre de Familia</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="regPassword">Contraseña</label>
+          <input class="form-input" type="password" id="regPassword" placeholder="••••••••" autocomplete="new-password" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="regConfirm">Confirmar contraseña</label>
+          <input class="form-input" type="password" id="regConfirm" placeholder="••••••••" autocomplete="new-password" />
+        </div>
+
+        <!-- Sección de hijos (visible solo para rol PADRE) -->
+        <div id="hijosSection" style="display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color, #e5e7eb);">
+          <p style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary, #1f2937);">
+            👶 Información del/los Hijos
+          </p>
+          <div id="hijosContainer"></div>
+          <button type="button" class="btn btn-secondary btn-sm" id="agregarHijoBtn" style="margin-top: 8px;">+ Agregar Hijo</button>
+        </div>
+
+        <div id="registerError" class="alert alert-error" style="display: none; margin-bottom: 12px;"></div>
+        <button class="btn btn-primary btn-lg w-100" type="submit" id="registerBtn">Crear Cuenta</button>
+      </form>
+      <p class="login-footer">
+        ¿Ya tienes cuenta? <a href="index.html" style="color: var(--primary); font-weight: 500;">Inicia Sesión</a>
+      </p>
+
+    </div>
+  </div>
+
+  <div class="login-right">
+    <div class="login-illustration">
+      <div class="login-illustration-icon">🎓</div>
+      <h2>Sistema de Gestión Educativa</h2>
+      <p>
+        Plataforma administrativa para docentes, padres y administración escolar.
+        Gestiona calificaciones y comunicación educativa.
+      </p>
+    </div>
+  </div>
+
+  <script src="assets/js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      /* ----- Children management for PADRE role ----- */
+      const regRol = document.getElementById('regRol')
+      const hijosSection = document.getElementById('hijosSection')
+      const hijosContainer = document.getElementById('hijosContainer')
+      const agregarHijoBtn = document.getElementById('agregarHijoBtn')
+      let hijoCount = 0
+
+      function crearHijoEntry() {
+        hijoCount++
+        const index = hijoCount
+        const div = document.createElement('div')
+        div.className = 'hijo-entry'
+        div.style.cssText = 'background: var(--bg-secondary, #f9fafb); border-radius: 8px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--border-light, #e5e7eb); position: relative;'
+        div.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 13px; font-weight: 600; color: var(--text-secondary, #6b7280);">Hijo #${index}</span>
+            <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 12px;" data-remove-hijo>✕</button>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div class="form-group" style="margin-bottom: 4px;">
+              <label class="form-label" style="font-size: 12px;">Nombre</label>
+              <input class="form-input" type="text" style="padding: 6px 10px; font-size: 13px;" data-hijo-nombre placeholder="Nombre del hijo" required />
+            </div>
+            <div class="form-group" style="margin-bottom: 4px;">
+              <label class="form-label" style="font-size: 12px;">Apellido Paterno</label>
+              <input class="form-input" type="text" style="padding: 6px 10px; font-size: 13px;" data-hijo-ap-pat placeholder="Apellido paterno" />
+            </div>
+            <div class="form-group" style="margin-bottom: 4px;">
+              <label class="form-label" style="font-size: 12px;">Apellido Materno</label>
+              <input class="form-input" type="text" style="padding: 6px 10px; font-size: 13px;" data-hijo-ap-mat placeholder="Apellido materno" />
+            </div>
+            <div class="form-group" style="margin-bottom: 4px;">
+              <label class="form-label" style="font-size: 12px;">Parentesco</label>
+              <select class="form-input" style="padding: 6px 10px; font-size: 13px;" data-hijo-parentesco required>
+                <option value="MADRE">Madre</option>
+                <option value="PADRE">Padre</option>
+                <option value="TUTOR">Tutor</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 4px;">
+              <label class="form-label" style="font-size: 12px;">Grado</label>
+              <select class="form-input" style="padding: 6px 10px; font-size: 13px;" data-hijo-grado required>
+                <option value="">Seleccionar</option>
+                <option value="1° Primaria">1° Primaria</option>
+                <option value="2° Primaria">2° Primaria</option>
+                <option value="3° Primaria">3° Primaria</option>
+                <option value="4° Primaria">4° Primaria</option>
+                <option value="5° Primaria">5° Primaria</option>
+                <option value="6° Primaria">6° Primaria</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 4px;">
+              <label class="form-label" style="font-size: 12px;">Grupo</label>
+              <select class="form-input" style="padding: 6px 10px; font-size: 13px;" data-hijo-grupo required>
+                <option value="">Seleccionar</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+              </select>
+            </div>
+          </div>
+        `
+        div.querySelector('[data-remove-hijo]').addEventListener('click', function () {
+          div.remove()
+        })
+        return div
+      }
+
+      regRol.addEventListener('change', function () {
+        if (this.value === 'PADRE') {
+          hijosSection.style.display = 'block'
+        } else {
+          hijosSection.style.display = 'none'
+        }
+      })
+
+      agregarHijoBtn.addEventListener('click', function () {
+        hijosContainer.appendChild(crearHijoEntry())
+      })
+
+      document.getElementById('registerForm').addEventListener('submit', async function (e) {
+        e.preventDefault()
+        const errorEl = document.getElementById('registerError')
+        const btn = document.getElementById('registerBtn')
+
+        const password = document.getElementById('regPassword').value
+        if (password.length < 6) {
+          errorEl.textContent = 'La contraseña debe tener al menos 6 caracteres'
+          errorEl.style.display = 'block'
+          return
+        }
+
+        btn.disabled = true
+        btn.textContent = 'Registrando...'
+        errorEl.style.display = 'none'
+
+        const rol = document.getElementById('regRol').value
+        const datosBase = {
+          nombre: document.getElementById('regNombre').value.trim(),
+          apellidoPaterno: document.getElementById('regApPat').value.trim(),
+          apellidoMaterno: document.getElementById('regApMat').value.trim(),
+          correo: document.getElementById('regCorreo').value.trim(),
+          telefono: document.getElementById('regTelefono').value.trim(),
+          rol: rol,
+          contrasena: password
+        }
+
+        try {
+          let result
+
+          if (rol === 'PADRE') {
+            const hijoEntries = hijosContainer.querySelectorAll('.hijo-entry')
+            const hijos = []
+            hijoEntries.forEach(function (entry) {
+              const nombre = entry.querySelector('[data-hijo-nombre]').value.trim()
+              if (nombre) {
+                hijos.push({
+                  nombre: nombre,
+                  apellidoPaterno: entry.querySelector('[data-hijo-ap-pat]').value.trim(),
+                  apellidoMaterno: entry.querySelector('[data-hijo-ap-mat]').value.trim(),
+                  grado: entry.querySelector('[data-hijo-grado]').value,
+                  grupo: entry.querySelector('[data-hijo-grupo]').value,
+                  parentesco: entry.querySelector('[data-hijo-parentesco]').value
+                })
+              }
+            })
+            result = await registrarPadreConHijos(datosBase, hijos)
+          } else {
+            result = await registrarUsuario(datosBase)
+          }
+
+          if (result.success) {
+            console.log('[Auth] Registro exitoso, redirigiendo a descarga...')
+            window.location.href = 'descarga-app.html?rol=' + encodeURIComponent(rol)
+          } else {
+            console.error('[Auth] Error de registro:', result.error)
+            errorEl.textContent = result.error
+            errorEl.style.display = 'block'
+          }
+        } catch (err) {
+          console.error('[Auth] Error inesperado:', err.message)
+          errorEl.textContent = err.message || 'Error de conexión con el servidor'
+          errorEl.style.display = 'block'
+        } finally {
+          btn.disabled = false
+          btn.textContent = 'Crear Cuenta'
+        }
+      })
+
+    })
+  </script>
+</body>
+</html>
