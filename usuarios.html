@@ -252,7 +252,6 @@
             '<td><span class="status status-active"><span class="status-dot"></span>Activo</span></td>' +
             '<td>' + formatearFecha(u.ultimo_acceso) + '</td>' +
             '<td style="text-align:center;">' +
-              '<button class="btn btn-secondary btn-icon btn-sm" data-view-id="' + u.id_usuario + '" title="Ver">👁️</button>' +
               '<button class="btn btn-secondary btn-icon btn-sm" data-edit-id="' + u.id_usuario + '" title="Editar">✏️</button>' +
               '<button class="btn btn-secondary btn-icon btn-sm" data-delete-id="' + u.id_usuario + '" title="Eliminar">🗑️</button>' +
             '</td>'
@@ -428,8 +427,6 @@
         } else if (btn.hasAttribute('data-delete-id')) {
           id = btn.getAttribute('data-delete-id')
           abrirModalEliminar(id)
-        } else if (btn.hasAttribute('data-view-id')) {
-          showToast('Función de vista próximamente')
         }
       })
 

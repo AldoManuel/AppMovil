@@ -1022,7 +1022,8 @@ input, select, textarea {
   border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 /* ----- Barra de Búsqueda y Filtros ----- */
