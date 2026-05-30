@@ -1,0 +1,179 @@
+-- 1. Agregar columna limite_alumnos a la tabla docente
+ALTER TABLE public.docente ADD COLUMN IF NOT EXISTS limite_alumnos INTEGER DEFAULT 30;
+
+-- 2. Función para obtener materias de un docente específico
+CREATE OR REPLACE FUNCTION obtener_materias_por_docente(p_id_docente UUID)
+RETURNS JSON AS $$
+DECLARE
+  v_result JSON;
+BEGIN
+  SELECT json_agg(json_build_object('id_materia', m.id_materia, 'nombre', m.nombre) ORDER BY m.nombre)
+  INTO v_result
+  FROM public.docente_materia dm
+  JOIN public.materia m ON m.id_materia = dm.id_materia
+  WHERE dm.id_docente = p_id_docente;
+  RETURN COALESCE(v_result, '[]'::json);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 3. Función para actualizar el límite de alumnos de un docente
+CREATE OR REPLACE FUNCTION actualizar_limite_alumnos(p_id_docente UUID, p_limite INTEGER)
+RETURNS JSON AS $$
+BEGIN
+  UPDATE public.docente SET limite_alumnos = GREATEST(p_limite, 1) WHERE id_docente = p_id_docente;
+  RETURN json_build_object('success', true);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 4. Modificar asignar_docente_grupo con validación de límite
+CREATE OR REPLACE FUNCTION asignar_docente_grupo(
+  p_id_docente UUID,
+  p_id_grado INTEGER,
+  p_id_grupo INTEGER,
+  p_id_materia INTEGER
+) RETURNS JSON AS $$
+DECLARE
+  v_limite INTEGER;
+  v_actual INTEGER;
+  v_nuevos INTEGER;
+BEGIN
+  SELECT limite_alumnos INTO v_limite FROM public.docente WHERE id_docente = p_id_docente;
+  SELECT COUNT(*) INTO v_actual FROM (
+    SELECT a.id_alumno
+    FROM public.docente_asignacion_grupo dag
+    JOIN public.alumno a ON a.id_grado = dag.id_grado AND a.id_grupo = dag.id_grupo
+    WHERE dag.id_docente = p_id_docente AND dag.activo = true
+    UNION
+    SELECT aa.id_alumno
+    FROM public.docente_asignacion_alumno aa
+    WHERE aa.id_docente = p_id_docente AND aa.activo = true
+  ) AS alumnos_actuales;
+  SELECT COUNT(*) INTO v_nuevos FROM public.alumno WHERE id_grado = p_id_grado AND id_grupo = p_id_grupo;
+  IF v_actual + v_nuevos > v_limite THEN
+    RETURN json_build_object('success', false, 'error', 'Límite de ' || v_limite || ' alumnos excedido. Actual: ' || v_actual || ', nuevos: ' || v_nuevos);
+  END IF;
+  INSERT INTO public.docente_asignacion_grupo (id_docente, id_grado, id_grupo, id_materia)
+  VALUES (p_id_docente, p_id_grado, p_id_grupo, p_id_materia)
+  ON CONFLICT (id_docente, id_grado, id_grupo, id_materia)
+  DO UPDATE SET activo = true;
+  RETURN json_build_object('success', true);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 5. Modificar asignar_docente_alumno con validación de límite
+CREATE OR REPLACE FUNCTION asignar_docente_alumno(
+  p_id_docente UUID,
+  p_id_alumno UUID,
+  p_id_materia INTEGER
+) RETURNS JSON AS $$
+DECLARE
+  v_limite INTEGER;
+  v_actual INTEGER;
+BEGIN
+  SELECT limite_alumnos INTO v_limite FROM public.docente WHERE id_docente = p_id_docente;
+  SELECT COUNT(*) INTO v_actual FROM (
+    SELECT a.id_alumno
+    FROM public.docente_asignacion_grupo dag
+    JOIN public.alumno a ON a.id_grado = dag.id_grado AND a.id_grupo = dag.id_grupo
+    WHERE dag.id_docente = p_id_docente AND dag.activo = true
+    UNION
+    SELECT aa.id_alumno
+    FROM public.docente_asignacion_alumno aa
+    WHERE aa.id_docente = p_id_docente AND aa.activo = true
+  ) AS alumnos_actuales;
+  IF v_actual >= v_limite THEN
+    RETURN json_build_object('success', false, 'error', 'Límite de ' || v_limite || ' alumnos alcanzado. Actual: ' || v_actual);
+  END IF;
+  INSERT INTO public.docente_asignacion_alumno (id_docente, id_alumno, id_materia)
+  VALUES (p_id_docente, p_id_alumno, p_id_materia)
+  ON CONFLICT (id_docente, id_alumno, id_materia)
+  DO UPDATE SET activo = true;
+  RETURN json_build_object('success', true);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 6. Modificar obtener_docentes para incluir limite_alumnos
+CREATE OR REPLACE FUNCTION obtener_docentes()
+RETURNS JSON AS $$
+DECLARE
+  v_result JSON;
+BEGIN
+  SELECT json_agg(json_build_object(
+    'id_docente', u.id_usuario,
+    'nombre', u.nombre,
+    'apellido_paterno', u.apellido_paterno,
+    'apellido_materno', u.apellido_materno,
+    'correo', u.correo,
+    'telefono', u.telefono,
+    'activo', u.activo,
+    'experiencia', d.experiencia,
+    'limite_alumnos', d.limite_alumnos,
+    'total_alumnos', (
+      COALESCE((
+        SELECT COUNT(DISTINCT a.id_alumno)
+        FROM public.docente_asignacion_grupo dag
+        JOIN public.alumno a ON a.id_grado = dag.id_grado AND a.id_grupo = dag.id_grupo
+        WHERE dag.id_docente = u.id_usuario AND dag.activo = true
+      ), 0) +
+      COALESCE((
+        SELECT COUNT(DISTINCT aa.id_alumno)
+        FROM public.docente_asignacion_alumno aa
+        WHERE aa.id_docente = u.id_usuario AND aa.activo = true
+      ), 0)
+    ),
+    'materias', COALESCE((
+      SELECT json_agg(json_build_object(
+        'id_materia', m.id_materia,
+        'nombre', m.nombre
+      ) ORDER BY m.nombre)
+      FROM public.docente_materia dm
+      JOIN public.materia m ON m.id_materia = dm.id_materia
+      WHERE dm.id_docente = u.id_usuario
+    ), '[]'::json)
+  ) ORDER BY u.nombre, u.apellido_paterno)
+  INTO v_result
+  FROM public.usuario u
+  JOIN public.docente d ON d.id_docente = u.id_usuario
+  WHERE u.rol = 'DOCENTE' AND u.activo = true;
+  RETURN COALESCE(v_result, '[]'::json);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 7. Permisos para las nuevas funciones
+GRANT EXECUTE ON FUNCTION obtener_materias_por_docente TO anon;
+GRANT EXECUTE ON FUNCTION actualizar_limite_alumnos TO anon;
+
+-- 8. Función para crear un nuevo grupo
+CREATE OR REPLACE FUNCTION crear_grupo(p_nombre VARCHAR)
+RETURNS JSON AS $$
+DECLARE
+  v_id INTEGER;
+BEGIN
+  INSERT INTO public.grupo (nombre) VALUES (p_nombre)
+  ON CONFLICT (nombre) DO NOTHING
+  RETURNING id_grupo INTO v_id;
+  IF v_id IS NULL THEN
+    RETURN json_build_object('success', false, 'error', 'El grupo "' || p_nombre || '" ya existe');
+  END IF;
+  RETURN json_build_object('success', true, 'id_grupo', v_id);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 9. Función para eliminar un grupo
+CREATE OR REPLACE FUNCTION eliminar_grupo(p_id_grupo INTEGER)
+RETURNS JSON AS $$
+DECLARE
+  v_count INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO v_count FROM public.alumno WHERE id_grupo = p_id_grupo;
+  IF v_count > 0 THEN
+    RETURN json_build_object('success', false, 'error', 'No se puede eliminar: ' || v_count || ' alumno(s) pertenecen a este grupo');
+  END IF;
+  DELETE FROM public.grupo WHERE id_grupo = p_id_grupo;
+  RETURN json_build_object('success', true);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 10. Permisos para funciones de grupos
+GRANT EXECUTE ON FUNCTION crear_grupo TO anon;
+GRANT EXECUTE ON FUNCTION eliminar_grupo TO anon;

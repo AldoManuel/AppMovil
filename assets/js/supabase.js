@@ -167,6 +167,18 @@ async function obtenerMaterias() {
   return data || []
 }
 
+async function obtenerMateriasPorDocente(idDocente) {
+  const { data, error } = await window.__sbClient.rpc('obtener_materias_por_docente', { p_id_docente: idDocente })
+  if (error) throw error
+  return data || []
+}
+
+async function actualizarLimiteAlumnos(idDocente, limite) {
+  const { data, error } = await window.__sbClient.rpc('actualizar_limite_alumnos', { p_id_docente: idDocente, p_limite: limite })
+  if (error) throw error
+  return data
+}
+
 async function crearMateria(nombre) {
   const { data, error } = await window.__sbClient.rpc('crear_materia', { p_nombre: nombre })
   if (error) throw error
@@ -175,6 +187,18 @@ async function crearMateria(nombre) {
 
 async function eliminarMateria(id) {
   const { data, error } = await window.__sbClient.rpc('eliminar_materia', { p_id_materia: id })
+  if (error) throw error
+  return data
+}
+
+async function crearGrupo(nombre) {
+  const { data, error } = await window.__sbClient.rpc('crear_grupo', { p_nombre: nombre })
+  if (error) throw error
+  return data
+}
+
+async function eliminarGrupo(id) {
+  const { data, error } = await window.__sbClient.rpc('eliminar_grupo', { p_id_grupo: id })
   if (error) throw error
   return data
 }

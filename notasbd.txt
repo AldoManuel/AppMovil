@@ -1,0 +1,166 @@
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.actividad (
+  id_actividad integer NOT NULL DEFAULT nextval('actividad_id_actividad_seq'::regclass),
+  id_usuario uuid,
+  accion character varying NOT NULL,
+  entidad_tipo character varying,
+  entidad_id uuid,
+  estado character varying,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT actividad_pkey PRIMARY KEY (id_actividad),
+  CONSTRAINT actividad_id_usuario_fkey FOREIGN KEY (id_usuario) REFERENCES public.usuario(id_usuario)
+);
+CREATE TABLE public.alumno (
+  id_alumno uuid NOT NULL,
+  id_grupo integer,
+  promedio numeric DEFAULT 0.00,
+  id_grado integer,
+  CONSTRAINT alumno_pkey PRIMARY KEY (id_alumno),
+  CONSTRAINT alumno_id_alumno_fkey FOREIGN KEY (id_alumno) REFERENCES public.usuario(id_usuario),
+  CONSTRAINT alumno_id_grupo_fkey FOREIGN KEY (id_grupo) REFERENCES public.grupo(id_grupo),
+  CONSTRAINT alumno_id_grado_fkey FOREIGN KEY (id_grado) REFERENCES public.grado(id_grado)
+);
+CREATE TABLE public.alumno_padre (
+  id_alumno uuid NOT NULL,
+  id_padre uuid NOT NULL,
+  parentesco character varying NOT NULL CHECK (parentesco::text = ANY (ARRAY['MADRE'::character varying, 'PADRE'::character varying, 'TUTOR'::character varying]::text[])),
+  CONSTRAINT alumno_padre_pkey PRIMARY KEY (id_alumno, id_padre),
+  CONSTRAINT alumno_padre_id_alumno_fkey FOREIGN KEY (id_alumno) REFERENCES public.alumno(id_alumno),
+  CONSTRAINT alumno_padre_id_padre_fkey FOREIGN KEY (id_padre) REFERENCES public.padre(id_padre)
+);
+CREATE TABLE public.asistencia (
+  id_asistencia integer NOT NULL DEFAULT nextval('asistencia_id_asistencia_seq'::regclass),
+  id_alumno uuid,
+  fecha date NOT NULL,
+  presente boolean DEFAULT true,
+  justificacion text,
+  CONSTRAINT asistencia_pkey PRIMARY KEY (id_asistencia),
+  CONSTRAINT asistencia_id_alumno_fkey FOREIGN KEY (id_alumno) REFERENCES public.alumno(id_alumno)
+);
+CREATE TABLE public.calificacion (
+  id_calificacion integer NOT NULL DEFAULT nextval('calificacion_id_calificacion_seq'::regclass),
+  id_alumno uuid,
+  id_materia integer,
+  calificacion numeric NOT NULL CHECK (calificacion >= 0::numeric AND calificacion <= 10::numeric),
+  periodo character varying NOT NULL,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT calificacion_pkey PRIMARY KEY (id_calificacion),
+  CONSTRAINT calificacion_id_materia_fkey FOREIGN KEY (id_materia) REFERENCES public.materia(id_materia),
+  CONSTRAINT calificacion_id_alumno_fkey FOREIGN KEY (id_alumno) REFERENCES public.alumno(id_alumno)
+);
+CREATE TABLE public.configuracion (
+  id_configuracion integer NOT NULL DEFAULT nextval('configuracion_id_configuracion_seq'::regclass),
+  id_usuario uuid UNIQUE,
+  tema character varying DEFAULT 'light'::character varying CHECK (tema::text = ANY (ARRAY['light'::character varying, 'dark'::character varying]::text[])),
+  sidebar_colapsada boolean DEFAULT false,
+  idioma character varying DEFAULT 'Español'::character varying,
+  notificaciones_email boolean DEFAULT true,
+  notificaciones_push boolean DEFAULT false,
+  registros_por_pagina integer DEFAULT 25 CHECK (registros_por_pagina = ANY (ARRAY[10, 25, 50, 100])),
+  formato_fecha character varying DEFAULT 'DD/MM/AAAA'::character varying,
+  zona_horaria character varying DEFAULT 'America/Mexico_City'::character varying,
+  modo_asignacion character varying DEFAULT 'AUTO'::character varying CHECK (modo_asignacion::text = ANY (ARRAY['AUTO'::character varying, 'MANUAL'::character varying]::text[])),
+  CONSTRAINT configuracion_pkey PRIMARY KEY (id_configuracion),
+  CONSTRAINT configuracion_id_usuario_fkey FOREIGN KEY (id_usuario) REFERENCES public.usuario(id_usuario)
+);
+CREATE TABLE public.docente (
+  id_docente uuid NOT NULL,
+  experiencia integer DEFAULT 0,
+  CONSTRAINT docente_pkey PRIMARY KEY (id_docente),
+  CONSTRAINT docente_id_docente_fkey FOREIGN KEY (id_docente) REFERENCES public.usuario(id_usuario)
+);
+CREATE TABLE public.docente_asignacion_alumno (
+  id_asignacion integer NOT NULL DEFAULT nextval('docente_asignacion_alumno_id_asignacion_seq'::regclass),
+  id_docente uuid NOT NULL,
+  id_alumno uuid NOT NULL,
+  id_materia integer NOT NULL,
+  activo boolean DEFAULT true,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT docente_asignacion_alumno_pkey PRIMARY KEY (id_asignacion),
+  CONSTRAINT docente_asignacion_alumno_id_alumno_fkey FOREIGN KEY (id_alumno) REFERENCES public.alumno(id_alumno),
+  CONSTRAINT docente_asignacion_alumno_id_materia_fkey FOREIGN KEY (id_materia) REFERENCES public.materia(id_materia),
+  CONSTRAINT docente_asignacion_alumno_id_docente_fkey FOREIGN KEY (id_docente) REFERENCES public.docente(id_docente)
+);
+CREATE TABLE public.docente_asignacion_grupo (
+  id_asignacion integer NOT NULL DEFAULT nextval('docente_asignacion_grupo_id_asignacion_seq'::regclass),
+  id_docente uuid NOT NULL,
+  id_grado integer NOT NULL,
+  id_grupo integer NOT NULL,
+  id_materia integer NOT NULL,
+  activo boolean DEFAULT true,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT docente_asignacion_grupo_pkey PRIMARY KEY (id_asignacion),
+  CONSTRAINT docente_asignacion_grupo_id_docente_fkey FOREIGN KEY (id_docente) REFERENCES public.docente(id_docente),
+  CONSTRAINT docente_asignacion_grupo_id_grado_fkey FOREIGN KEY (id_grado) REFERENCES public.grado(id_grado),
+  CONSTRAINT docente_asignacion_grupo_id_grupo_fkey FOREIGN KEY (id_grupo) REFERENCES public.grupo(id_grupo),
+  CONSTRAINT docente_asignacion_grupo_id_materia_fkey FOREIGN KEY (id_materia) REFERENCES public.materia(id_materia)
+);
+CREATE TABLE public.docente_materia (
+  id_docente uuid NOT NULL,
+  id_materia integer NOT NULL,
+  CONSTRAINT docente_materia_pkey PRIMARY KEY (id_docente, id_materia),
+  CONSTRAINT docente_materia_id_docente_fkey FOREIGN KEY (id_docente) REFERENCES public.docente(id_docente),
+  CONSTRAINT docente_materia_id_materia_fkey FOREIGN KEY (id_materia) REFERENCES public.materia(id_materia)
+);
+CREATE TABLE public.evento (
+  id_evento integer NOT NULL DEFAULT nextval('evento_id_evento_seq'::regclass),
+  titulo character varying NOT NULL,
+  descripcion text,
+  tipo character varying NOT NULL CHECK (tipo::text = ANY (ARRAY['EVENTO_ESCOLAR'::character varying, 'EXAMEN'::character varying, 'PROYECTO'::character varying, 'FECHA_IMPORTANTE'::character varying]::text[])),
+  fecha date NOT NULL,
+  hora time without time zone,
+  color character varying,
+  id_creador uuid,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT evento_pkey PRIMARY KEY (id_evento),
+  CONSTRAINT evento_id_creador_fkey FOREIGN KEY (id_creador) REFERENCES public.usuario(id_usuario)
+);
+CREATE TABLE public.grado (
+  id_grado integer NOT NULL DEFAULT nextval('grado_id_grado_seq'::regclass),
+  nombre character varying NOT NULL UNIQUE,
+  nivel integer NOT NULL CHECK (nivel >= 1 AND nivel <= 6),
+  CONSTRAINT grado_pkey PRIMARY KEY (id_grado)
+);
+CREATE TABLE public.grupo (
+  id_grupo integer NOT NULL DEFAULT nextval('grupo_id_grupo_seq'::regclass),
+  nombre character varying NOT NULL UNIQUE,
+  CONSTRAINT grupo_pkey PRIMARY KEY (id_grupo)
+);
+CREATE TABLE public.materia (
+  id_materia integer NOT NULL DEFAULT nextval('materia_id_materia_seq'::regclass),
+  nombre character varying NOT NULL UNIQUE,
+  CONSTRAINT materia_pkey PRIMARY KEY (id_materia)
+);
+CREATE TABLE public.notificacion (
+  id_notificacion integer NOT NULL DEFAULT nextval('notificacion_id_notificacion_seq'::regclass),
+  id_usuario uuid,
+  tipo character varying NOT NULL,
+  titulo character varying NOT NULL,
+  cuerpo text,
+  leida boolean DEFAULT false,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT notificacion_pkey PRIMARY KEY (id_notificacion),
+  CONSTRAINT notificacion_id_usuario_fkey FOREIGN KEY (id_usuario) REFERENCES public.usuario(id_usuario)
+);
+CREATE TABLE public.padre (
+  id_padre uuid NOT NULL,
+  direccion character varying,
+  CONSTRAINT padre_pkey PRIMARY KEY (id_padre),
+  CONSTRAINT padre_id_padre_fkey FOREIGN KEY (id_padre) REFERENCES public.usuario(id_usuario)
+);
+CREATE TABLE public.usuario (
+  id_usuario uuid NOT NULL DEFAULT gen_random_uuid(),
+  nombre character varying NOT NULL,
+  apellido_paterno character varying,
+  apellido_materno character varying,
+  correo character varying NOT NULL UNIQUE,
+  telefono character varying,
+  rol character varying NOT NULL CHECK (rol::text = ANY (ARRAY['ADMIN'::character varying, 'DOCENTE'::character varying, 'PADRE'::character varying, 'ALUMNO'::character varying]::text[])),
+  activo boolean DEFAULT true,
+  ultimo_acceso timestamp without time zone,
+  contrasena character varying,
+  fecha_registro timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT usuario_pkey PRIMARY KEY (id_usuario)
+);

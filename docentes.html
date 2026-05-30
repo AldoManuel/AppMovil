@@ -74,7 +74,7 @@
 
   <!-- ===== MODAL EDITAR DOCENTE ===== -->
   <div class="modal-overlay" id="modalEditarDocente">
-    <div class="modal" style="max-width: 800px;">
+    <div class="modal" style="max-width: 820px;">
       <div class="modal-header">
         <h2 class="modal-title" id="editModalTitle">Editar Asignaciones</h2>
         <button class="modal-close" data-modal="modalEditarDocente">&times;</button>
@@ -87,6 +87,14 @@
         <div class="modal-body">
           <!-- TAB MATERIAS -->
           <div class="tab-content active" id="tabMaterias">
+            <div class="form-row" style="margin-bottom: 16px; align-items: end;">
+              <div class="form-group" style="flex: 1;">
+                <label class="form-label">Límite de alumnos por docente</label>
+                <input class="form-input" id="inputLimiteAlumnos" type="number" min="1" max="200" />
+              </div>
+              <button class="btn btn-secondary btn-sm" id="btnGuardarLimite">Guardar Límite</button>
+            </div>
+            <hr style="margin: 16px 0; border-color: var(--border-color);" />
             <p style="margin-bottom: 12px; color: var(--text-muted);">Selecciona las materias que este docente impartirá:</p>
             <div id="materiasCheckboxList" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;"></div>
             <button class="btn btn-primary" id="btnGuardarMaterias">Guardar Materias</button>
@@ -114,7 +122,7 @@
 
       var docentesCache = []
       var materiasCache = []
-      var modoAsignacionGlobal = 'AUTO'
+      var modoAsignacionGlobal = 'MANUAL'
       var docenteEditando = null
 
       function obtenerNombreCompleto(d) {
@@ -163,7 +171,7 @@
               '<span>📧 ' + escapeHtml(d.correo || '') + '</span>' +
               '<span>📞 ' + escapeHtml(d.telefono || '') + '</span>' +
               '<span>🎓 ' + (d.experiencia || 0) + ' a' + (d.experiencia === 1 ? 'ño' : 'ños') + ' de experiencia</span>' +
-              '<span>👥 ' + (d.total_alumnos || 0) + ' alumno' + (d.total_alumnos === 1 ? '' : 's') + '</span>' +
+              '<span>👥 ' + (d.total_alumnos || 0) + '/' + (d.limite_alumnos || 30) + ' alumnos</span>' +
             '</div>' +
             '<div class="profile-actions">' +
               '<button class="btn btn-secondary btn-sm" data-edit-id="' + d.id_docente + '">✏️ Editar</button>' +
@@ -190,6 +198,7 @@
       function abrirModalEditar(docente) {
         docenteEditando = docente
         document.getElementById('editModalTitle').textContent = 'Editar Asignaciones — ' + escapeHtml(obtenerNombreCompleto(docente))
+        document.getElementById('inputLimiteAlumnos').value = docente.limite_alumnos || 30
         var modal = document.getElementById('modalEditarDocente')
         modal.classList.add('show')
         document.body.style.overflow = 'hidden'
@@ -238,6 +247,8 @@
             btn.textContent = '✓ Guardado'
             setTimeout(function () { btn.textContent = 'Guardar Materias'; btn.disabled = false }, 1500)
             cargarDocentes()
+            cargarSelectMateriasAsignacion()
+            cargarSelectMateriasManual()
           } else {
             showToast('Error: ' + (res.error || ' desconocido'))
             btn.textContent = 'Guardar Materias'; btn.disabled = false
@@ -249,15 +260,42 @@
         })
       })
 
+      document.getElementById('btnGuardarLimite').addEventListener('click', function () {
+        if (!docenteEditando) return
+        var limite = parseInt(document.getElementById('inputLimiteAlumnos').value)
+        if (!limite || limite < 1) { showToast('Ingresa un límite válido'); return }
+        var btn = this
+        btn.disabled = true
+        btn.textContent = 'Guardando...'
+        actualizarLimiteAlumnos(docenteEditando.id_docente, limite).then(function (res) {
+          if (res.success) {
+            showToast('Límite actualizado a ' + limite + ' alumnos')
+            docenteEditando.limite_alumnos = limite
+            cargarDocentes()
+            cargarAsignacionesAlumnos(docenteEditando)
+          } else {
+            showToast('Error: ' + (res.error || 'desconocido'))
+          }
+          btn.disabled = false
+          btn.textContent = 'Guardar Límite'
+        }).catch(function (err) {
+          console.error('[Editar] Error al guardar límite:', err)
+          showToast('Error al guardar límite')
+          btn.disabled = false
+          btn.textContent = 'Guardar Límite'
+        })
+      })
+
       /* --- TAB ALUMNOS --- */
 
       function cargarAsignacionesAlumnos(docente) {
         obtenerConfiguracionAdmin().then(function (config) {
-          modoAsignacionGlobal = (config && config.modo_asignacion) || 'AUTO'
+          modoAsignacionGlobal = (config && config.modo_asignacion) || 'MANUAL'
           var infoEl = document.getElementById('modoAsignacionInfo')
           var isAuto = modoAsignacionGlobal === 'AUTO'
-          infoEl.innerHTML = 'Modo de asignación: <strong>' + (isAuto ? 'AUTOMÁTICO (por grupo)' : 'MANUAL (por alumno)') + '</strong>' +
-            ' — <a href="configuracion.html" style="color:var(--primary);">Cambiar en Configuración</a>'
+          infoEl.innerHTML = 'Modo de asignación: <strong>' + (isAuto ? 'AUTOMÁTICO (por grupo)' : 'MANUAL (por alumno)') + '</strong>'
+            if (!isAuto) { infoEl.innerHTML += ' <span style="color:var(--success);font-size:12px;">✓ activo</span>' }
+            infoEl.innerHTML += ' — <a href="configuracion.html" style="color:var(--primary);">Cambiar en Configuración</a>'
 
           if (isAuto) {
             cargarAsignacionesAuto(docente)
@@ -280,29 +318,41 @@
           var rows = ''
           asignaciones.forEach(function (a) {
             totalAlumnos += a.total_alumnos || 0
-            rows += '<tr>' +
-              '<td>' + escapeHtml(a.grado) + '</td>' +
-              '<td>' + escapeHtml(a.grupo) + '</td>' +
-              '<td>' + escapeHtml(a.materia) + '</td>' +
-              '<td>' + (a.total_alumnos || 0) + '</td>' +
-              '<td class="text-nowrap"><button class="btn btn-danger btn-sm" data-rm-asignacion="' + a.id_asignacion + '" data-tipo="GRUPO">✕</button></td>' +
+            rows += '<tr style="vertical-align:middle;">' +
+              '<td style="padding:10px 12px;font-weight:500;">' + escapeHtml(a.grado) + '</td>' +
+              '<td style="padding:10px 12px;"><span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;background:var(--secondary-light);color:var(--secondary);font-weight:500;">' + escapeHtml(a.grupo) + '</span></td>' +
+              '<td style="padding:10px 12px;color:var(--text-secondary);font-size:13px;">' + escapeHtml(a.materia) + '</td>' +
+              '<td style="padding:10px 12px;"><span style="display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;border-radius:14px;background:var(--bg-secondary);font-size:13px;font-weight:600;">' + (a.total_alumnos || 0) + '</span></td>' +
+              '<td style="text-align:center;padding:10px 12px;"><button class="btn btn-danger btn-sm" data-rm-asignacion="' + a.id_asignacion + '" data-tipo="GRUPO" title="Eliminar asignación" style="width:32px;height:32px;padding:0;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;">✕</button></td>' +
             '</tr>'
           })
 
+          var limite = docente.limite_alumnos || 30
+          var pct = Math.min(100, Math.round((totalAlumnos / limite) * 100))
+          var barColor = pct >= 90 ? 'var(--danger)' : pct >= 75 ? '#d97706' : 'var(--primary)'
           var html =
-            '<p style="margin-bottom:8px;color:var(--text-muted);">Total: <strong>' + totalAlumnos + '</strong> alumnos en ' + asignaciones.length + ' grupo(s)</p>' +
-            '<div class="table-container" style="margin-bottom:16px;">' +
-              '<table class="table"><thead><tr><th>Grado</th><th>Grupo</th><th>Materia</th><th>Alumnos</th><th class="text-nowrap">Acción</th></tr></thead><tbody>' +
-                (rows || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">Sin asignaciones de grupo</td></tr>') +
-              '</tbody></table>' +
+            '<div class="card" style="margin-bottom:16px;">' +
+              '<div class="card-header"><span class="card-title">Asignaciones por grupo</span><span style="font-size:13px;color:var(--text-muted);background:var(--bg-secondary);padding:4px 12px;border-radius:20px;">' + totalAlumnos + ' / ' + limite + ' alumnos</span></div>' +
+              '<div class="card-body" style="padding:0;">' +
+                '<div style="padding:12px 20px 0 20px;">' +
+                  '<div style="height:6px;background:var(--border-color);border-radius:3px;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:' + barColor + ';border-radius:3px;transition:width 0.3s;"></div></div>' +
+                '</div>' +
+                '<div class="table-container" style="max-height:280px;overflow-y:auto;border:none;margin:0;">' +
+                  '<table style="min-width:100%;"><thead><tr><th style="padding:12px;width:25%;">Grado</th><th style="padding:12px;width:15%;">Grupo</th><th style="padding:12px;width:35%;">Materia</th><th style="padding:12px;width:15%;">Alumnos</th><th style="padding:12px;width:10%;text-align:center;">Acción</th></tr></thead><tbody>' +
+                    (rows || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:40px;">Sin asignaciones de grupo</td></tr>') +
+                  '</tbody></table>' +
+                '</div>' +
+              '</div>' +
             '</div>' +
-            '<div class="card" style="padding:16px;">' +
-              '<h4 style="margin-bottom:12px;">Agregar asignación por grupo</h4>' +
-              '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;">' +
-                '<select id="selGrado" class="form-select"><option value="">Grado</option></select>' +
-                '<select id="selGrupo" class="form-select"><option value="">Grupo</option></select>' +
-                '<select id="selMateriaAsig" class="form-select"><option value="">Materia</option></select>' +
-                '<button class="btn btn-primary" id="btnAgregarAsignacionGrupo">Asignar</button>' +
+            '<div class="card">' +
+              '<div class="card-header"><span class="card-title">Nueva asignación por grupo</span></div>' +
+              '<div class="card-body">' +
+                '<div style="display:flex;gap:10px;flex-wrap:wrap;">' +
+                  '<select id="selGrado" class="form-select" style="flex:1;min-width:140px;"><option value="">Grado</option></select>' +
+                  '<select id="selGrupo" class="form-select" style="flex:0 0 110px;"><option value="">Grupo</option></select>' +
+                  '<select id="selMateriaAsig" class="form-select" style="flex:1;min-width:140px;"><option value="">Materia</option></select>' +
+                  '<button class="btn btn-primary" id="btnAgregarAsignacionGrupo">Asignar</button>' +
+                '</div>' +
               '</div>' +
             '</div>'
 
@@ -349,12 +399,13 @@
 
       function cargarSelectMateriasAsignacion(materiasDocenteIds) {
         var sel = document.getElementById('selMateriaAsig')
-        if (!sel) return
+        if (!sel || !docenteEditando) return
         sel.innerHTML = '<option value="">Materia</option>'
-        materiasCache.forEach(function (m) {
-          if (materiasDocenteIds && materiasDocenteIds.indexOf(m.id_materia) === -1) return
-          sel.innerHTML += '<option value="' + m.id_materia + '">' + escapeHtml(m.nombre) + '</option>'
-        })
+        obtenerMateriasPorDocente(docenteEditando.id_docente).then(function (materias) {
+          materias.forEach(function (m) {
+            sel.innerHTML += '<option value="' + m.id_materia + '">' + escapeHtml(m.nombre) + '</option>'
+          })
+        }).catch(function (err) { console.error('[Select] Error materias docente:', err) })
       }
 
       function agregarAsignacionGrupo(docente) {
@@ -390,39 +441,71 @@
 
       function cargarAsignacionesManual(docente) {
         var content = document.getElementById('alumnosContent')
-        content.innerHTML = '<p style="color:var(--text-muted);">Cargando asignaciones...</p>'
+        content.innerHTML = '<p style="color:var(--text-muted);padding:40px;text-align:center;">Cargando asignaciones...</p>'
 
         obtenerAsignacionesAlumnoPorDocente(docente.id_docente).then(function (asignaciones) {
           var rows = ''
           asignaciones.forEach(function (a) {
-            rows += '<tr>' +
-              '<td>' + escapeHtml(a.nombre_alumno) + '</td>' +
-              '<td>' + escapeHtml(a.grado || '-') + ' ' + escapeHtml(a.grupo || '-') + '</td>' +
-              '<td>' + escapeHtml(a.materia) + '</td>' +
-              '<td class="text-nowrap"><button class="btn btn-danger btn-sm" data-rm-asignacion="' + a.id_asignacion + '" data-tipo="ALUMNO">✕</button></td>' +
+            var iniciales = ((a.nombre_alumno || '?').charAt(0) + (a.nombre_alumno.split(' ')[1] || '').charAt(0)).toUpperCase() || '?'
+            var colores = ['#1a73e8','#34a853','#ea4335','#fbbc04','#7c3aed','#0891b2','#d97706']
+            var color = colores[Math.abs(a.id_alumno ? a.id_asignacion % colores.length : 0)]
+            rows += '<tr style="vertical-align:middle;">' +
+              '<td style="display:flex;align-items:center;gap:10px;padding:10px 12px;">' +
+                '<span style="width:32px;height:32px;border-radius:50%;background:' + color + ';color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;">' + escapeHtml(iniciales) + '</span>' +
+                '<span style="font-weight:500;">' + escapeHtml(a.nombre_alumno) + '</span>' +
+              '</td>' +
+              '<td style="padding:10px 12px;"><span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;background:var(--primary-light);color:var(--primary);font-weight:500;">' + escapeHtml(a.grado || '-') + ' ' + escapeHtml(a.grupo || '-') + '</span></td>' +
+              '<td style="padding:10px 12px;color:var(--text-secondary);font-size:13px;">' + escapeHtml(a.materia) + '</td>' +
+              '<td style="text-align:center;padding:10px 12px;"><button class="btn btn-danger btn-sm" data-rm-asignacion="' + a.id_asignacion + '" data-tipo="ALUMNO" title="Eliminar asignación" style="width:32px;height:32px;padding:0;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;">✕</button></td>' +
             '</tr>'
           })
 
+          var limite = docente.limite_alumnos || 30
+          var total = asignaciones.length
+          var pct = Math.min(100, Math.round((total / limite) * 100))
+          var barColor = pct >= 90 ? 'var(--danger)' : pct >= 75 ? '#d97706' : 'var(--primary)'
           var html =
-            '<p style="margin-bottom:8px;color:var(--text-muted);">Total: <strong>' + asignaciones.length + '</strong> alumno(s) asignados</p>' +
-            '<div class="table-container" style="margin-bottom:16px;">' +
-              '<table class="table"><thead><tr><th>Alumno</th><th>Grado/Grupo</th><th>Materia</th><th class="text-nowrap">Acción</th></tr></thead><tbody>' +
-                (rows || '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);">Sin alumnos asignados</td></tr>') +
-              '</tbody></table>' +
-            '</div>' +
-            '<div class="card" style="padding:16px;">' +
-              '<h4 style="margin-bottom:12px;">Agregar alumno manualmente</h4>' +
-              '<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">' +
-                '<select id="selMateriaManual" class="form-select" style="flex:1;min-width:160px;"><option value="">Seleccionar materia</option></select>' +
-                '<input type="text" id="txtBuscarAlumno" class="form-input" placeholder="Buscar alumno..." style="flex:1;min-width:160px;">' +
+            '<div class="card" style="margin-bottom:16px;">' +
+              '<div class="card-header"><span class="card-title">Alumnos asignados</span><span style="font-size:13px;color:var(--text-muted);background:var(--bg-secondary);padding:4px 12px;border-radius:20px;">' + total + ' / ' + limite + '</span></div>' +
+              '<div class="card-body" style="padding:0;">' +
+                '<div style="padding:12px 20px 0 20px;">' +
+                  '<div style="height:6px;background:var(--border-color);border-radius:3px;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:' + barColor + ';border-radius:3px;transition:width 0.3s;"></div></div>' +
+                '</div>' +
+                '<div class="table-container" style="max-height:280px;overflow-y:auto;border:none;margin:0;">' +
+                  '<table style="min-width:100%;"><thead><tr><th style="padding:12px;width:45%;">Alumno</th><th style="padding:12px;width:20%;">Grado/Grupo</th><th style="padding:12px;width:25%;">Materia</th><th style="padding:12px;width:10%;text-align:center;">Acción</th></tr></thead><tbody>' +
+                    (rows || '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:40px;">Sin alumnos asignados</td></tr>') +
+                  '</tbody></table>' +
+                '</div>' +
               '</div>' +
-              '<div id="listaAlumnosSeleccion" class="table-container" style="max-height:220px;overflow-y:auto;margin-bottom:12px;"></div>' +
-              '<button class="btn btn-primary" id="btnAsignarAlumnosSeleccionados">Asignar Seleccionados</button>' +
+            '</div>' +
+            '<div class="card">' +
+              '<div class="card-header"><span class="card-title">Agregar alumno manualmente</span></div>' +
+              '<div class="card-body">' +
+                '<div class="form-row" style="margin-bottom:14px;">' +
+                  '<div class="form-group" style="flex:2;">' +
+                    '<label class="form-label" style="font-size:13px;">Materia</label>' +
+                    '<select id="selMateriaManual" class="form-select"><option value="">Seleccionar materia</option></select>' +
+                  '</div>' +
+                  '<div class="form-group" style="flex:1;">' +
+                    '<label class="form-label" style="font-size:13px;">Grupo</label>' +
+                    '<select id="selFiltroGrupo" class="form-select"><option value="">Todos</option></select>' +
+                  '</div>' +
+                  '<div class="form-group" style="flex:3;">' +
+                    '<label class="form-label" style="font-size:13px;">Buscar alumno</label>' +
+                    '<input type="text" id="txtBuscarAlumno" class="form-input" placeholder="Nombre del alumno..." />' +
+                  '</div>' +
+                '</div>' +
+                '<div id="listaAlumnosSeleccion" style="max-height:220px;overflow-y:auto;border:1px solid var(--border-color);border-radius:8px;padding:6px;margin-bottom:14px;"></div>' +
+                '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">' +
+                  '<span id="contadorSeleccionados" style="font-size:13px;color:var(--text-muted);">0 alumnos seleccionados</span>' +
+                  '<button class="btn btn-primary" id="btnAsignarAlumnosSeleccionados">Asignar Seleccionados</button>' +
+                '</div>' +
+              '</div>' +
             '</div>'
 
           content.innerHTML = html
-          var idsMateriasDocente = (docente.materias || []).map(function (m) { return m.id_materia })
-          cargarSelectMateriasManual(idsMateriasDocente)
+          cargarSelectMateriasManual()
+          cargarSelectFiltroGrupo()
           cargarListaAlumnos(docente, asignaciones)
 
           content.querySelectorAll('[data-rm-asignacion]').forEach(function (btn) {
@@ -437,26 +520,53 @@
           var searchInput = document.getElementById('txtBuscarAlumno')
           if (searchInput) {
             searchInput.addEventListener('input', function () {
-              filtrarListaAlumnos(this.value)
+              aplicarFiltros()
+            })
+          }
+          var grupoSelect = document.getElementById('selFiltroGrupo')
+          if (grupoSelect) {
+            grupoSelect.addEventListener('change', function () {
+              aplicarFiltros()
+            })
+          }
+
+          var listaContainer = document.getElementById('listaAlumnosSeleccion')
+          if (listaContainer) {
+            listaContainer.addEventListener('change', function (e) {
+              if (e.target.classList.contains('alumno-checkbox')) {
+                actualizarContadorSeleccionados()
+              }
             })
           }
         }).catch(function (err) {
           console.error('[Manual] Error:', err)
-          content.innerHTML = '<p style="color:var(--danger);">Error al cargar asignaciones</p>'
+          content.innerHTML = '<p style="color:var(--danger);text-align:center;padding:40px;">Error al cargar asignaciones</p>'
         })
       }
 
       var todosAlumnos = []
       var alumnosAsignadosIds = new Set()
 
-      function cargarSelectMateriasManual(materiasDocenteIds) {
-        var sel = document.getElementById('selMateriaManual')
+      function cargarSelectFiltroGrupo() {
+        var sel = document.getElementById('selFiltroGrupo')
         if (!sel) return
+        sel.innerHTML = '<option value="">Todos</option>'
+        obtenerGrupos().then(function (grupos) {
+          grupos.forEach(function (g) {
+            sel.innerHTML += '<option value="' + g.id_grupo + '">' + escapeHtml(g.nombre) + '</option>'
+          })
+        }).catch(function (err) { console.error('[Select] Error grupos:', err) })
+      }
+
+      function cargarSelectMateriasManual() {
+        var sel = document.getElementById('selMateriaManual')
+        if (!sel || !docenteEditando) return
         sel.innerHTML = '<option value="">Seleccionar materia</option>'
-        materiasCache.forEach(function (m) {
-          if (materiasDocenteIds && materiasDocenteIds.indexOf(m.id_materia) === -1) return
-          sel.innerHTML += '<option value="' + m.id_materia + '">' + escapeHtml(m.nombre) + '</option>'
-        })
+        obtenerMateriasPorDocente(docenteEditando.id_docente).then(function (materias) {
+          materias.forEach(function (m) {
+            sel.innerHTML += '<option value="' + m.id_materia + '">' + escapeHtml(m.nombre) + '</option>'
+          })
+        }).catch(function (err) { console.error('[Select] Error materias docente:', err) })
       }
 
       function cargarListaAlumnos(docente, asignaciones) {
@@ -474,30 +584,50 @@
         var container = document.getElementById('listaAlumnosSeleccion')
         if (!container) return
         if (!alumnos.length) {
-          container.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;">No hay alumnos disponibles</p>'
+          container.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:30px;font-size:14px;">No hay alumnos disponibles</p>'
           return
         }
-        var html = '<table class="table"><thead><tr><th style="width:40px;">Sel.</th><th>Alumno</th><th>Grado/Grupo</th></tr></thead><tbody>'
+        var html = ''
+        var colores = ['#1a73e8','#34a853','#ea4335','#fbbc04','#7c3aed','#0891b2','#d97706']
         alumnos.forEach(function (a) {
-          html += '<tr><td><input type="checkbox" class="alumno-checkbox" value="' + a.id_alumno + '"></td>' +
-            '<td>' + escapeHtml(a.nombre + ' ' + (a.apellido_paterno || '')) + '</td>' +
-            '<td>' + escapeHtml(a.grado || '-') + ' ' + escapeHtml(a.grupo || '-') + '</td></tr>'
+          var iniciales = ((a.nombre || '?').charAt(0) + (a.apellido_paterno || '').charAt(0)).toUpperCase() || '?'
+          var color = colores[Math.abs((a.id_alumno || a.nombre || '').length) % colores.length]
+          html += '<label style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;cursor:pointer;transition:background 0.15s;border-bottom:1px solid var(--border-light);" onmouseover="this.style.background=\'var(--primary-light)\'" onmouseout="this.style.background=\'transparent\'">' +
+            '<input type="checkbox" class="alumno-checkbox" value="' + a.id_alumno + '" style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer;" />' +
+            '<span style="width:30px;height:30px;border-radius:50%;background:' + color + ';color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;">' + escapeHtml(iniciales) + '</span>' +
+            '<span style="flex:1;font-size:13px;font-weight:500;">' + escapeHtml(a.nombre + ' ' + (a.apellido_paterno || '')) + '</span>' +
+            '<span style="font-size:11px;color:var(--text-muted);background:var(--bg-secondary);padding:2px 8px;border-radius:10px;">' + escapeHtml(a.grado || '-') + ' ' + escapeHtml(a.grupo || '-') + '</span>' +
+          '</label>'
         })
-        html += '</tbody></table>'
         container.innerHTML = html
       }
 
-      function filtrarListaAlumnos(query) {
-        var disponibles = todosAlumnos.filter(function (a) { return !alumnosAsignadosIds.has(a.id_alumno) })
-        if (!query) {
-          renderizarListaAlumnos(disponibles)
-          return
+      function actualizarContadorSeleccionados() {
+        var contador = document.getElementById('contadorSeleccionados')
+        if (!contador) return
+        var checked = document.querySelectorAll('.alumno-checkbox:checked').length
+        contador.textContent = checked + ' alumno' + (checked === 1 ? '' : 's') + ' seleccionado' + (checked === 1 ? '' : 's')
+      }
+
+      function aplicarFiltros() {
+        var query = document.getElementById('txtBuscarAlumno').value
+        var idGrupo = parseInt(document.getElementById('selFiltroGrupo').value) || 0
+        var filtrados = todosAlumnos.filter(function (a) { return !alumnosAsignadosIds.has(a.id_alumno) })
+        if (idGrupo) {
+          filtrados = filtrados.filter(function (a) { return a.id_grupo === idGrupo })
         }
-        var q = query.toLowerCase()
-        var filtrados = disponibles.filter(function (a) {
-          return (a.nombre + ' ' + (a.apellido_paterno || '') + ' ' + (a.apellido_materno || '')).toLowerCase().indexOf(q) !== -1
-        })
+        if (query) {
+          var q = query.toLowerCase()
+          filtrados = filtrados.filter(function (a) {
+            return (a.nombre + ' ' + (a.apellido_paterno || '') + ' ' + (a.apellido_materno || '')).toLowerCase().indexOf(q) !== -1
+          })
+        }
         renderizarListaAlumnos(filtrados)
+        actualizarContadorSeleccionados()
+      }
+
+      function filtrarListaAlumnos(query) {
+        aplicarFiltros()
       }
 
       function asignarAlumnosSeleccionados(docente) {

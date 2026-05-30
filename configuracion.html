@@ -219,6 +219,27 @@
             </div>
           </div>
 
+          <!-- Gestión de Grupos -->
+          <div class="settings-section" style="grid-column: 1 / -1;">
+            <h3 class="settings-section-title">Gestión de Grupos</h3>
+            <div class="settings-card">
+              <div class="setting-item" style="flex-wrap: wrap; gap: 12px;">
+                <div class="setting-info" style="flex: 1; min-width: 200px;">
+                  <h4>Agregar Nuevo Grupo</h4>
+                  <p>Registra un nuevo grupo (A, B, C, etc.) en el sistema</p>
+                </div>
+                <div style="display: flex; gap: 8px; flex: 1; min-width: 250px;">
+                  <input type="text" id="inputNuevoGrupo" class="form-input" placeholder="Nombre del grupo..." style="flex: 1;" />
+                  <button class="btn btn-primary" id="btnAgregarGrupo">➕ Agregar</button>
+                </div>
+              </div>
+              <div style="margin-top: 8px;">
+                <h4 style="margin-bottom: 8px;">Grupos Registrados</h4>
+                <div id="listaGrupos" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px;"></div>
+              </div>
+            </div>
+          </div>
+
           <!-- Modo de Asignación -->
           <div class="settings-section" style="grid-column: 1 / -1;">
             <h3 class="settings-section-title">Asignación de Alumnos</h3>
@@ -299,16 +320,58 @@
         obtenerConfiguracionAdmin().then(function (config) {
           var sel = document.getElementById('selectModoAsignacion')
           if (sel && config) {
-            sel.value = config.modo_asignacion || 'AUTO'
+            sel.value = config.modo_asignacion || 'MANUAL'
           }
         }).catch(function (err) {
           console.error('[Config] Error al cargar modo:', err)
         })
       }
 
+      function cargarGrupos() {
+        obtenerGrupos().then(function (grupos) {
+          var container = document.getElementById('listaGrupos')
+          if (!container) return
+          if (!grupos || grupos.length === 0) {
+            container.innerHTML = '<p style="color:var(--text-muted);grid-column:1/-1;text-align:center;padding:20px;">No hay grupos registrados</p>'
+            return
+          }
+          var html = ''
+          grupos.forEach(function (g) {
+            html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:6px;">' +
+              '<span>' + escapeHtml(g.nombre) + '</span>' +
+              '<button class="btn btn-danger btn-sm btn-eliminar-grupo" data-id="' + g.id_grupo + '" data-nombre="' + escapeHtml(g.nombre) + '">🗑️</button>' +
+            '</div>'
+          })
+          container.innerHTML = html
+
+          container.querySelectorAll('.btn-eliminar-grupo').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+              var id = parseInt(this.getAttribute('data-id'))
+              var nombre = this.getAttribute('data-nombre')
+              if (confirm('¿Eliminar el grupo "' + nombre + '"?')) {
+                eliminarGrupo(id).then(function (res) {
+                  if (res.success) {
+                    showToast('Grupo eliminado')
+                    cargarGrupos()
+                  } else {
+                    showToast('Error: ' + (res.error || 'desconocido'))
+                  }
+                }).catch(function (err) {
+                  console.error('[Grupos] Error al eliminar:', err)
+                  showToast('Error al eliminar grupo')
+                })
+              }
+            })
+          })
+        }).catch(function (err) {
+          console.error('[Grupos] Error al cargar:', err)
+        })
+      }
+
       document.addEventListener('DOMContentLoaded', function () {
         cargarMaterias()
         cargarModoAsignacion()
+        cargarGrupos()
 
         var btnAdd = document.getElementById('btnAgregarMateria')
         var input = document.getElementById('inputNuevaMateria')
@@ -340,6 +403,39 @@
           })
           input.addEventListener('keydown', function (e) {
             if (e.key === 'Enter') btnAdd.click()
+          })
+        }
+
+        var btnAddGrupo = document.getElementById('btnAgregarGrupo')
+        var inputGrupo = document.getElementById('inputNuevoGrupo')
+        if (btnAddGrupo && inputGrupo) {
+          btnAddGrupo.addEventListener('click', function () {
+            var nombre = inputGrupo.value.trim().toUpperCase()
+            if (!nombre) {
+              showToast('Ingresa un nombre para el grupo')
+              return
+            }
+            btnAddGrupo.disabled = true
+            btnAddGrupo.textContent = 'Agregando...'
+            crearGrupo(nombre).then(function (res) {
+              if (res.success) {
+                showToast('Grupo creado: ' + nombre)
+                inputGrupo.value = ''
+                cargarGrupos()
+              } else {
+                showToast('Error: ' + (res.error || 'desconocido'))
+              }
+              btnAddGrupo.disabled = false
+              btnAddGrupo.textContent = '➕ Agregar'
+            }).catch(function (err) {
+              console.error('[Grupos] Error al crear:', err)
+              showToast('Error al crear grupo')
+              btnAddGrupo.disabled = false
+              btnAddGrupo.textContent = '➕ Agregar'
+            })
+          })
+          inputGrupo.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') btnAddGrupo.click()
           })
         }
 

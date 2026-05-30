@@ -61,7 +61,8 @@ CREATE TABLE public.usuario (
 -- 3.1 Docente — extiende usuario con rol DOCENTE
 CREATE TABLE public.docente (
   id_docente UUID PRIMARY KEY REFERENCES public.usuario(id_usuario),
-  experiencia INTEGER DEFAULT 0
+  experiencia INTEGER DEFAULT 0,
+  limite_alumnos INTEGER DEFAULT 30
 );
 
 -- 3.2 Relación N:M Docente ↔ Materia
@@ -705,6 +706,9 @@ CREATE OR REPLACE FUNCTION actualizar_padre_con_hijos(
 DECLARE
   v_hijo JSON;
   v_existe_correo BOOLEAN;
+  v_id_alumno UUID;
+  v_correo_alumno VARCHAR;
+  v_counter INTEGER := 0;
 BEGIN
   -- Verificar si el correo ya está en uso por otro usuario
   SELECT EXISTS(SELECT 1 FROM public.usuario WHERE correo = p_correo AND id_usuario != p_id_padre) INTO v_existe_correo;
@@ -729,24 +733,49 @@ BEGIN
   -- Procesar cada hijo
   FOR v_hijo IN SELECT * FROM json_array_elements(p_hijos)
   LOOP
-    -- Actualizar datos del alumno en tabla usuario
-    UPDATE public.usuario
-    SET nombre = v_hijo->>'nombre',
-        apellido_paterno = v_hijo->>'apellidoPaterno',
-        apellido_materno = v_hijo->>'apellidoMaterno'
-    WHERE id_usuario = (v_hijo->>'id_alumno')::UUID;
+    IF (v_hijo->>'id_alumno') IS NOT NULL AND (v_hijo->>'id_alumno') <> '' THEN
+      -- Hijo existente: actualizar datos
+      UPDATE public.usuario
+      SET nombre = v_hijo->>'nombre',
+          apellido_paterno = v_hijo->>'apellidoPaterno',
+          apellido_materno = v_hijo->>'apellidoMaterno'
+      WHERE id_usuario = (v_hijo->>'id_alumno')::UUID;
 
-    -- Actualizar grado y grupo en tabla alumno
-    UPDATE public.alumno
-    SET id_grado = (v_hijo->>'id_grado')::INTEGER,
-        id_grupo = (v_hijo->>'id_grupo')::INTEGER
-    WHERE id_alumno = (v_hijo->>'id_alumno')::UUID;
+      UPDATE public.alumno
+      SET id_grado = (v_hijo->>'id_grado')::INTEGER,
+          id_grupo = (v_hijo->>'id_grupo')::INTEGER
+      WHERE id_alumno = (v_hijo->>'id_alumno')::UUID;
 
-    -- Actualizar parentesco en tabla alumno_padre
-    UPDATE public.alumno_padre
-    SET parentesco = v_hijo->>'parentesco'
-    WHERE id_alumno = (v_hijo->>'id_alumno')::UUID
-      AND id_padre = p_id_padre;
+      UPDATE public.alumno_padre
+      SET parentesco = v_hijo->>'parentesco'
+      WHERE id_alumno = (v_hijo->>'id_alumno')::UUID
+        AND id_padre = p_id_padre;
+    ELSE
+      -- Hijo nuevo: insertar registros
+      v_counter := v_counter + 1;
+      v_correo_alumno := LOWER(REGEXP_REPLACE(
+        (v_hijo->>'nombre') || '.' || COALESCE(v_hijo->>'apellidoPaterno', 'alumno') || v_counter || '@alumno.temp',
+        '[^a-z0-9@.]', '', 'g'
+      ));
+
+      INSERT INTO public.usuario (nombre, apellido_paterno, apellido_materno, correo, rol, activo, contrasena)
+      VALUES (
+        v_hijo->>'nombre',
+        v_hijo->>'apellidoPaterno',
+        v_hijo->>'apellidoMaterno',
+        v_correo_alumno,
+        'ALUMNO',
+        true,
+        NULL
+      )
+      RETURNING id_usuario INTO v_id_alumno;
+
+      INSERT INTO public.alumno (id_alumno, id_grado, id_grupo)
+      VALUES (v_id_alumno, (v_hijo->>'id_grado')::INTEGER, (v_hijo->>'id_grupo')::INTEGER);
+
+      INSERT INTO public.alumno_padre (id_alumno, id_padre, parentesco)
+      VALUES (v_id_alumno, p_id_padre, v_hijo->>'parentesco');
+    END IF;
   END LOOP;
 
   RETURN json_build_object('success', true);
@@ -874,7 +903,37 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ==========================================================
--- 23. FUNCIONES RPC — ASIGNACIÓN DE MATERIAS A DOCENTE
+-- 23a. FUNCIÓN RPC — OBTENER MATERIAS DE UN DOCENTE
+-- ==========================================================
+
+CREATE OR REPLACE FUNCTION obtener_materias_por_docente(p_id_docente UUID)
+RETURNS JSON AS $$
+DECLARE
+  v_result JSON;
+BEGIN
+  SELECT json_agg(json_build_object('id_materia', m.id_materia, 'nombre', m.nombre) ORDER BY m.nombre)
+  INTO v_result
+  FROM public.docente_materia dm
+  JOIN public.materia m ON m.id_materia = dm.id_materia
+  WHERE dm.id_docente = p_id_docente;
+  RETURN COALESCE(v_result, '[]'::json);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==========================================================
+-- 23b. FUNCIÓN RPC — ACTUALIZAR LÍMITE DE ALUMNOS
+-- ==========================================================
+
+CREATE OR REPLACE FUNCTION actualizar_limite_alumnos(p_id_docente UUID, p_limite INTEGER)
+RETURNS JSON AS $$
+BEGIN
+  UPDATE public.docente SET limite_alumnos = GREATEST(p_limite, 1) WHERE id_docente = p_id_docente;
+  RETURN json_build_object('success', true);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==========================================================
+-- 25. FUNCIONES RPC — ASIGNACIÓN DE MATERIAS A DOCENTE
 -- ==========================================================
 
 CREATE OR REPLACE FUNCTION asignar_materias_docente(
@@ -892,7 +951,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ==========================================================
--- 24. FUNCIONES RPC — ASIGNACIÓN DOCENTE A GRUPO (AUTO)
+-- 26. FUNCIONES RPC — ASIGNACIÓN DOCENTE A GRUPO (AUTO)
 -- ==========================================================
 
 CREATE OR REPLACE FUNCTION asignar_docente_grupo(
@@ -901,7 +960,34 @@ CREATE OR REPLACE FUNCTION asignar_docente_grupo(
   p_id_grupo INTEGER,
   p_id_materia INTEGER
 ) RETURNS JSON AS $$
+DECLARE
+  v_limite INTEGER;
+  v_actual INTEGER;
+  v_nuevos INTEGER;
 BEGIN
+  -- Obtener límite del docente
+  SELECT limite_alumnos INTO v_limite FROM public.docente WHERE id_docente = p_id_docente;
+
+  -- Contar alumnos actuales del docente (distintos)
+  SELECT COUNT(*) INTO v_actual FROM (
+    SELECT a.id_alumno
+    FROM public.docente_asignacion_grupo dag
+    JOIN public.alumno a ON a.id_grado = dag.id_grado AND a.id_grupo = dag.id_grupo
+    WHERE dag.id_docente = p_id_docente AND dag.activo = true
+    UNION
+    SELECT aa.id_alumno
+    FROM public.docente_asignacion_alumno aa
+    WHERE aa.id_docente = p_id_docente AND aa.activo = true
+  ) AS alumnos_actuales;
+
+  -- Contar alumnos en el grupo destino
+  SELECT COUNT(*) INTO v_nuevos FROM public.alumno WHERE id_grado = p_id_grado AND id_grupo = p_id_grupo;
+
+  -- Validar límite
+  IF v_actual + v_nuevos > v_limite THEN
+    RETURN json_build_object('success', false, 'error', 'Límite de ' || v_limite || ' alumnos excedido. Actual: ' || v_actual || ', nuevos: ' || v_nuevos);
+  END IF;
+
   INSERT INTO public.docente_asignacion_grupo (id_docente, id_grado, id_grupo, id_materia)
   VALUES (p_id_docente, p_id_grado, p_id_grupo, p_id_materia)
   ON CONFLICT (id_docente, id_grado, id_grupo, id_materia)
@@ -939,7 +1025,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ==========================================================
--- 25. FUNCIONES RPC — ASIGNACIÓN DOCENTE A ALUMNO (MANUAL)
+-- 27. FUNCIONES RPC — ASIGNACIÓN DOCENTE A ALUMNO (MANUAL)
 -- ==========================================================
 
 CREATE OR REPLACE FUNCTION asignar_docente_alumno(
@@ -947,7 +1033,30 @@ CREATE OR REPLACE FUNCTION asignar_docente_alumno(
   p_id_alumno UUID,
   p_id_materia INTEGER
 ) RETURNS JSON AS $$
+DECLARE
+  v_limite INTEGER;
+  v_actual INTEGER;
 BEGIN
+  -- Obtener límite del docente
+  SELECT limite_alumnos INTO v_limite FROM public.docente WHERE id_docente = p_id_docente;
+
+  -- Contar alumnos actuales del docente (distintos)
+  SELECT COUNT(*) INTO v_actual FROM (
+    SELECT a.id_alumno
+    FROM public.docente_asignacion_grupo dag
+    JOIN public.alumno a ON a.id_grado = dag.id_grado AND a.id_grupo = dag.id_grupo
+    WHERE dag.id_docente = p_id_docente AND dag.activo = true
+    UNION
+    SELECT aa.id_alumno
+    FROM public.docente_asignacion_alumno aa
+    WHERE aa.id_docente = p_id_docente AND aa.activo = true
+  ) AS alumnos_actuales;
+
+  -- Validar límite
+  IF v_actual >= v_limite THEN
+    RETURN json_build_object('success', false, 'error', 'Límite de ' || v_limite || ' alumnos alcanzado. Actual: ' || v_actual);
+  END IF;
+
   INSERT INTO public.docente_asignacion_alumno (id_docente, id_alumno, id_materia)
   VALUES (p_id_docente, p_id_alumno, p_id_materia)
   ON CONFLICT (id_docente, id_alumno, id_materia)
@@ -983,7 +1092,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ==========================================================
--- 26. FUNCIÓN — ELIMINAR ASIGNACIÓN
+-- 28. FUNCIÓN — ELIMINAR ASIGNACIÓN
 -- ==========================================================
 
 CREATE OR REPLACE FUNCTION eliminar_asignacion_docente(
@@ -1003,7 +1112,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ==========================================================
--- 27. FUNCIÓN — OBTENER GRADOS Y GRUPOS (para selects)
+-- 29. FUNCIÓN — OBTENER GRADOS Y GRUPOS (para selects)
 -- ==========================================================
 
 CREATE OR REPLACE FUNCTION obtener_grados()
@@ -1038,7 +1147,40 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ==========================================================
--- 28. FUNCIÓN — OBTENER ALUMNOS (para selección manual)
+-- 30. FUNCIONES — CREAR / ELIMINAR GRUPOS
+-- ==========================================================
+
+CREATE OR REPLACE FUNCTION crear_grupo(p_nombre VARCHAR)
+RETURNS JSON AS $$
+DECLARE
+  v_id INTEGER;
+BEGIN
+  INSERT INTO public.grupo (nombre) VALUES (p_nombre)
+  ON CONFLICT (nombre) DO NOTHING
+  RETURNING id_grupo INTO v_id;
+  IF v_id IS NULL THEN
+    RETURN json_build_object('success', false, 'error', 'El grupo "' || p_nombre || '" ya existe');
+  END IF;
+  RETURN json_build_object('success', true, 'id_grupo', v_id);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION eliminar_grupo(p_id_grupo INTEGER)
+RETURNS JSON AS $$
+DECLARE
+  v_count INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO v_count FROM public.alumno WHERE id_grupo = p_id_grupo;
+  IF v_count > 0 THEN
+    RETURN json_build_object('success', false, 'error', 'No se puede eliminar: ' || v_count || ' alumno(s) pertenecen a este grupo');
+  END IF;
+  DELETE FROM public.grupo WHERE id_grupo = p_id_grupo;
+  RETURN json_build_object('success', true);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==========================================================
+-- 31. FUNCIÓN — OBTENER ALUMNOS (para selección manual)
 -- ==========================================================
 
 CREATE OR REPLACE FUNCTION obtener_alumnos()
@@ -1067,7 +1209,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ==========================================================
--- 29. FUNCIÓN — CONTEO DE ALUMNOS POR DOCENTE
+-- 32. FUNCIÓN — CONTEO DE ALUMNOS POR DOCENTE
 -- ==========================================================
 
 CREATE OR REPLACE FUNCTION obtener_conteo_alumnos_por_docente()
@@ -1098,7 +1240,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ==========================================================
--- 30. MODIFICAR obtener_docentes PARA INCLUIR total_alumnos
+-- 33. MODIFICAR obtener_docentes PARA INCLUIR total_alumnos
 -- ==========================================================
 
 CREATE OR REPLACE FUNCTION obtener_docentes()
@@ -1115,6 +1257,7 @@ BEGIN
     'telefono', u.telefono,
     'activo', u.activo,
     'experiencia', d.experiencia,
+    'limite_alumnos', d.limite_alumnos,
     'total_alumnos', (
       COALESCE((
         SELECT COUNT(DISTINCT a.id_alumno)
@@ -1148,7 +1291,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ==========================================================
--- 31. DATOS INICIALES — ASIGNACIONES DE EJEMPLO
+-- 34. DATOS INICIALES — ASIGNACIONES DE EJEMPLO
 -- ==========================================================
 
 -- María García (Matemáticas) -> 4° Primaria, Grupo A
@@ -1184,7 +1327,7 @@ WHERE d.id_docente = 'a0000000-0000-0000-0000-000000000006'
 ON CONFLICT DO NOTHING;
 
 -- ==========================================================
--- 32. CONFIGURACIÓN INICIAL — MODO ASIGNACIÓN
+-- 35. CONFIGURACIÓN INICIAL — MODO ASIGNACIÓN
 -- ==========================================================
 
 UPDATE public.configuracion
@@ -1192,9 +1335,11 @@ SET modo_asignacion = 'AUTO'
 WHERE id_usuario = 'a0000000-0000-0000-0000-000000000001';
 
 -- ==========================================================
--- 33. PERMISOS
+-- 36. PERMISOS
 -- ==========================================================
 
+GRANT EXECUTE ON FUNCTION crear_grupo TO anon;
+GRANT EXECUTE ON FUNCTION eliminar_grupo TO anon;
 GRANT EXECUTE ON FUNCTION obtener_materias TO anon;
 GRANT EXECUTE ON FUNCTION crear_materia TO anon;
 GRANT EXECUTE ON FUNCTION eliminar_materia TO anon;
@@ -1208,6 +1353,8 @@ GRANT EXECUTE ON FUNCTION obtener_grados TO anon;
 GRANT EXECUTE ON FUNCTION obtener_grupos TO anon;
 GRANT EXECUTE ON FUNCTION obtener_alumnos TO anon;
 GRANT EXECUTE ON FUNCTION obtener_conteo_alumnos_por_docente TO anon;
+GRANT EXECUTE ON FUNCTION obtener_materias_por_docente TO anon;
+GRANT EXECUTE ON FUNCTION actualizar_limite_alumnos TO anon;
 
 CREATE OR REPLACE FUNCTION obtener_configuracion_admin()
 RETURNS JSON AS $$
